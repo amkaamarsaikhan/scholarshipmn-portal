@@ -21,7 +21,7 @@ const Navbar = () => {
     const { user, loading } = useAuth();
 
     // Таны админ имэйл (Энийг өөрийнхөөрөө солиорой)
-    const isAdmin = user?.email === "таны-имэйл@gmail.com";
+    const isAdmin = user?.email === "amkaamarsaikhan@gmail.com";
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
