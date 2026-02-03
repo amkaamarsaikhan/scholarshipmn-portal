@@ -146,7 +146,7 @@ const Navbar = () => {
                                 className={`rounded-full border-2 text-[10px] uppercase tracking-widest px-8 h-10 font-black transition-all duration-300 shadow-lg active:scale-95 ${
                                     scrolled
                                     ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-emerald-100'
-                                    : 'border-white text-white hover:bg-white/20 hover:border-white shadow-black/10'
+                                    : 'border-white text-grey hover:bg-white/20 hover:border-white shadow-black/10'
                                 }`}
                             >
                                 Нэвтрэх
