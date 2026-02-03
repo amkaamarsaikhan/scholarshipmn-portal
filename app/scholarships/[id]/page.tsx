@@ -71,7 +71,7 @@ export default function ScholarshipDetails() {
           className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-12 font-medium group"
         >
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-          Back to list
+          Жагсаалт руу буцах
         </button>
 
         <div className="flex flex-col lg:flex-row gap-12">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({
@@ -40,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <main className="flex-1">
                 {children}
               </main>
-
+<Footer />
             </div>
           </div>
         </AuthProvider>

@@ -1,23 +1,34 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { 
+  onAuthStateChanged, 
+  User, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut 
+} from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
-// 1. Context-ийн төрлийг шинэчлэн тодорхойлох
+// 1. Context-ийн төрлийг шинэчлэн тодорхойлох (Бүртгэл, Нэвтрэх функц нэмэв)
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  savedItems: any[]; // Хадгалсан тэтгэлгүүдийн жагсаалт
-  toggleSave: (item: any) => void; // Хадгалах/Устгах функц
+  savedItems: any[];
+  toggleSave: (item: any) => void;
+  register: (email: string, password: string) => Promise<void>; // Нэмэгдсэн
+  login: (email: string, password: string) => Promise<void>;    // Нэмэгдсэн
+  logout: () => Promise<void>;                                   // Нэмэгдсэн
 }
 
-// 2. Default утгуудыг тохируулах
 const AuthContext = createContext<AuthContextType>({ 
   user: null, 
   loading: true,
   savedItems: [],
-  toggleSave: () => {} 
+  toggleSave: () => {},
+  register: async () => {},
+  login: async () => {},
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -25,8 +36,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [savedItems, setSavedItems] = useState<any[]>([]);
 
-  // 3. localStorage-оос хадгалсан датаг унших (Browser дээр ажиллана)
+  // 2. Бүртгүүлэх функц
+  const register = async (email: string, password: string) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+  };
+
+  // 3. Нэвтрэх функц
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  // 4. Гарах функц
+  const logout = async () => {
+    await signOut(auth);
+  };
+
   useEffect(() => {
+    // localStorage-оос хадгалсан датаг унших
     const saved = localStorage.getItem("savedScholarships");
     if (saved) {
       try {
@@ -44,28 +70,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  // 4. Хадгалах/Устгах функц
   const toggleSave = (item: any) => {
     setSavedItems((prevItems) => {
       const isExisting = prevItems.some((i) => i.id === item.id);
       let updatedItems;
 
       if (isExisting) {
-        // Хэрэв байгаа бол жагсаалтаас хасах
         updatedItems = prevItems.filter((i) => i.id !== item.id);
       } else {
-        // Байхгүй бол нэмэх
         updatedItems = [...prevItems, item];
       }
 
-      // LocalStorage-д хадгалах
       localStorage.setItem("savedScholarships", JSON.stringify(updatedItems));
       return updatedItems;
     });
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, savedItems, toggleSave }}>
+    <AuthContext.Provider value={{ user, loading, savedItems, toggleSave, register, login, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );
