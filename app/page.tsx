@@ -60,11 +60,11 @@ export default function Home() {
     // Хэрэв "Хадгалсан" горим идэвхтэй бол зөвхөн savedItems-д байгааг харуулна
     const isSaved = savedItems?.some((saved: any) => saved.id === item.id);
     const matchesSaved = showSavedOnly ? isSaved : true;
-    
+
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.country.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return matchesSaved && matchesCountry && matchesSearch;
   });
 
@@ -114,14 +114,14 @@ export default function Home() {
                 >
                   <Globe size={18} /> Бүх тэтгэлгүүд
                 </button>
-                
+
                 {/* 3. ШИНЭЧИЛСЭН ХАДГАЛСАН ХЭСЭГ */}
-                <button 
+                <button
                   onClick={() => { setShowSavedOnly(true); setSelectedCountry(null); }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${showSavedOnly ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Bookmark size={18} fill={showSavedOnly ? "white" : "none"} /> 
+                    <Bookmark size={18} fill={showSavedOnly ? "white" : "none"} />
                     Хадгалсан
                   </div>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${showSavedOnly ? 'bg-white text-emerald-600' : 'bg-emerald-100 text-emerald-600'}`}>
@@ -170,15 +170,16 @@ export default function Home() {
           </div>
 
           {loading ? (
-             <div className="flex justify-center py-20">
-                <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-             </div>
+            <div className="flex justify-center py-20">
+              <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
           ) : filteredScholarships.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredScholarships.map((item) => (
                 <ScholarshipCard key={item.id} item={item} />
               ))}
             </div>
+
           ) : (
             <div className="text-center py-20 bg-white border border-dashed border-emerald-200 rounded-3xl">
               <p className="text-gray-500">{showSavedOnly ? "Танд хадгалсан тэтгэлэг алга." : "Уучлаарай, тэтгэлэг олдсонгүй."}</p>
