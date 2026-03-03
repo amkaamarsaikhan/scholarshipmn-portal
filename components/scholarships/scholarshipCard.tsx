@@ -8,12 +8,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ScholarshipCard({ item }: { item: any }) {
-  // isSaved байхгүй тохиолдолд алдаа гаргахгүй байхын тулд context-ийг any гэж авъя
-  const authContext = useAuth() as any;
-  const { toggleSave, savedItems } = authContext;
-
-  // isSaved функц байхгүй бол savedItems-ээс шууд шалгах
-  const saved = savedItems?.some((savedItem: any) => savedItem.id === item.id);
+  const { toggleSave, isSaved } = useAuth();
+  const saved = isSaved(item.id);
 
   return (
     <motion.div
@@ -33,7 +29,7 @@ export default function ScholarshipCard({ item }: { item: any }) {
         <button 
           onClick={(e) => {
             e.preventDefault();
-            if (toggleSave) toggleSave(item);
+            toggleSave(item);
           }}
           className="absolute top-6 right-6 w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white hover:text-emerald-600 transition-all duration-300 z-10"
         >

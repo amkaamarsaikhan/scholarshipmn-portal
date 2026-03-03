@@ -2,14 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Globe, X, Bookmark } from "lucide-react";
+import { LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import dynamic from 'next/dynamic';
 
-// 1. Dynamic import-ыг хамгийн энгийнээр, ямар нэг төрөл заалгүй авна.
 const ScholarshipCard = dynamic(() => import("@/components/scholarships/scholarshipCard"), { 
   ssr: true 
-}) as any;
+}) as React.FC<{ item: any }>;
 
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
@@ -34,7 +33,7 @@ export default function Home() {
   const [current, setCurrent] = useState(0);
   const [scholarships, setScholarships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { savedItems } = useAuth();
+  const { savedItems, isSaved } = useAuth();
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,7 +44,7 @@ export default function Home() {
         const data = await getScholarships();
         setScholarships(data);
       } catch (error) {
-        console.error("Дата татахад алдаа гарлаа:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -59,11 +58,10 @@ export default function Home() {
   }, []);
 
   const filteredScholarships = scholarships.filter((item) => {
-    const isSaved = savedItems?.some((saved: any) => saved.id === item.id);
-    const matchesSaved = showSavedOnly ? isSaved : true;
+    const matchesSaved = showSavedOnly ? isSaved(item.id) : true;
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.country.toLowerCase().includes(searchQuery.toLowerCase());
+                          item.country.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSaved && matchesCountry && matchesSearch;
   });
 
@@ -170,8 +168,8 @@ export default function Home() {
             </div>
           ) : filteredScholarships.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredScholarships.map((item: any) => (
-                <ScholarshipCard key={item.id} {...{ item }} />
+              {filteredScholarships.map((item) => (
+                <ScholarshipCard key={item.id} item={item} />
               ))}
             </div>
           ) : (

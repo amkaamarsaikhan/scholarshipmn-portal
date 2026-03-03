@@ -10,12 +10,12 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
-// 1. Context-ийн төрлийг шинэчлэн тодорхойлох (Бүртгэл, Нэвтрэх функц нэмэв)
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   savedItems: any[];
   toggleSave: (item: any) => void;
+  isSaved: (id: string) => boolean; 
   register: (email: string, password: string) => Promise<void>; 
   login: (email: string, password: string) => Promise<void>;    
   logout: () => Promise<void>;                                   
@@ -26,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   savedItems: [],
   toggleSave: () => {},
+  isSaved: () => false,
   register: async () => {},
   login: async () => {},
   logout: async () => {},
@@ -36,23 +37,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [savedItems, setSavedItems] = useState<any[]>([]);
 
-  // 2. Бүртгүүлэх функц
   const register = async (email: string, password: string) => {
     await createUserWithEmailAndPassword(auth, email, password);
   };
 
-  // 3. Нэвтрэх функц
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  // 4. Гарах функц
   const logout = async () => {
     await signOut(auth);
   };
 
+  const isSaved = (id: string) => {
+    return savedItems.some((i) => i.id === id);
+  };
+
   useEffect(() => {
-    // localStorage-оос хадгалсан датаг унших
     const saved = localStorage.getItem("savedScholarships");
     if (saved) {
       try {
@@ -87,7 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, savedItems, toggleSave, register, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, savedItems, toggleSave, isSaved, register, login, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );
