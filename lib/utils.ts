@@ -1,21 +1,14 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-/**
- * Tailwind-ийн классуудыг цэгцтэй нэгтгэх функц (Одоо байгаа функц)
- */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/**
- * Телеграм суваг руу мэдэгдэл илгээх функц
- */
 export const sendTelegramNotification = async (message: string) => {
-  // --- ӨӨРИЙН ТОХИРГООГ ЭНД ХИЙНЭ ---
-  const token = "YOUR_BOT_TOKEN"; // Өөрийн Bot Token-оо энд тавина
-  const chatId = "YOUR_CHAT_ID";   // Өөрийн Chat ID-гаа энд тавина
-  // --------------------------------
+
+  const token = "8565441529:AAGpDU-EYEyw9TSyTssq5CCga1Y-o6ggd1U"; 
+  const chatId = "8291139615"; 
   
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
