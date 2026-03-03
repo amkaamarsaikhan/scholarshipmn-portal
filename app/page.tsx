@@ -1,11 +1,12 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-// dynamic-ийг болиод шууд импортлов. Ингэснээр TypeScript алдаа гаргахгүй.
+// dynamic биш шууд импортоор төрлийг хадгална
 import ScholarshipCard from "@/components/scholarships/scholarshipCard"; 
 
 import { getScholarships } from "@/lib/actions/getScholarships";
@@ -40,9 +41,9 @@ export default function Home() {
     const fetchScholarships = async () => {
       try {
         const data = await getScholarships();
-        setScholarships(data);
+        setScholarships(data || []);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Fetch error:", error);
       } finally {
         setLoading(false);
       }
@@ -58,8 +59,8 @@ export default function Home() {
   const filteredScholarships = scholarships.filter((item) => {
     const matchesSaved = showSavedOnly ? isSaved(item.id) : true;
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.country.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.country?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSaved && matchesCountry && matchesSearch;
   });
 
