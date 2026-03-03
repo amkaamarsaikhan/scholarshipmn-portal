@@ -6,10 +6,10 @@ import { Search, LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import dynamic from 'next/dynamic';
 
-// TypeScript-ийн IntrinsicAttributes алдааг бүрмөсөн арилгах заалт
+// 1. Dynamic import-ыг хамгийн энгийнээр, ямар нэг төрөл заалгүй авна.
 const ScholarshipCard = dynamic(() => import("@/components/scholarships/scholarshipCard"), { 
   ssr: true 
-}) as React.ComponentType<any>;
+}) as any;
 
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
@@ -171,7 +171,7 @@ export default function Home() {
           ) : filteredScholarships.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredScholarships.map((item: any) => (
-                <ScholarshipCard key={item.id} item={item} />
+                <ScholarshipCard key={item.id} {...{ item }} />
               ))}
             </div>
           ) : (
