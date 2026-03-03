@@ -278,7 +278,7 @@ export default function ImportPage() {
                 count++;
                 setProgress(Math.round((count / scholarshipsData.length) * 100));
             }
-            setStatus("Амжилттай! 100 тэтгэлэг баазад орлоо.");
+            setStatus("Амжилттай! тэтгэлэг баазад орлоо.");
         } catch (err) {
             console.error("Import error:", err);
             setStatus("Алдаа гарлаа. Firestore Rules-ээ шалгана уу.");
@@ -302,7 +302,7 @@ export default function ImportPage() {
                         Data Seeder
                     </h1>
                     <p className="text-slate-400 text-sm mb-10 font-medium">
-                        Firestore-руу 100 ширхэг тэтгэлгийн өгөгдөл хуулах
+                        Firestore-руу тэтгэлгийн өгөгдөл хуулах
                     </p>
 
                     {/* Progress UI */}
