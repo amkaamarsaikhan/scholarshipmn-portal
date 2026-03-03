@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, User as UserIcon, PlusCircle, Home, LayoutDashboard, Settings, UserCircle, LogOut } from 'lucide-react';
+import { Menu, User as UserIcon, PlusCircle, Home, LayoutDashboard, Settings, UserCircle, LogOut, Bookmark } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -24,7 +24,6 @@ const Navbar = () => {
     const { user, loading } = useAuth();
     const router = useRouter();
 
-    // 1. Firestore-оос хэрэглэгчийн эрхийг (role) шалгах
     useEffect(() => {
         const checkRole = async () => {
             if (user) {
@@ -80,23 +79,35 @@ const Navbar = () => {
                     </span>
                 </Link>
 
-                {/* ЦЭСҮҮД (Desktop - Admin бол харагдана) */}
+                {/* ЦЭСҮҮД (Desktop) */}
                 <div className="hidden md:flex items-center space-x-8 text-[11px] uppercase tracking-[0.2em] font-bold">
-                    {user && isAdmin && (
+                    {/* Хэрэглэгч нэвтэрсэн үед харагдах ил цэсүүд */}
+                    {user && (
                         <>
-                            <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                            {/* МИНИЙ ПРОФАЙЛ (Одоо ил харагдана) */}
+                            <Link href="/profile" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
                                 }`}>
-                                <PlusCircle size={14} /> Тэтгэлэг нэмэх
+                                <Bookmark size={14} /> Миний Тэтгэлэг
                             </Link>
-                            <Link href="/admin" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
-                                }`}>
-                                <LayoutDashboard size={14} /> Админ Хяналт
-                            </Link>
+
+                            {/* Админ цэс */}
+                            {isAdmin && (
+                                <>
+                                    <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                        }`}>
+                                        <PlusCircle size={14} /> Тэтгэлэг нэмэх
+                                    </Link>
+                                    <Link href="/admin" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                        }`}>
+                                        <LayoutDashboard size={14} /> Админ Хяналт
+                                    </Link>
+                                </>
+                            )}
                         </>
                     )}
                 </div>
 
-                {/* БАРУУН ТАЛ (User Profile & Login) */}
+                {/* БАРУУН ТАЛ */}
                 <div className="flex items-center space-x-6">
                     {!loading && (
                         user ? (
@@ -109,7 +120,7 @@ const Navbar = () => {
                                                 {user.displayName?.split(' ')[0] || "User"}
                                             </span>
                                             <span className="text-[9px] text-emerald-500 font-black uppercase tracking-tighter">
-                                                {isAdmin ? "Админ Эрх" : "Миний цэс"}
+                                                {isAdmin ? "Админ" : "Хэрэглэгч"}
                                             </span>
                                         </div>
                                         <div className="relative">
@@ -120,12 +131,11 @@ const Navbar = () => {
                                                     <UserIcon size={20} />
                                                 </div>
                                             )}
-                                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
                                         </div>
                                     </div>
                                 </DropdownMenuTrigger>
 
-                                <DropdownMenuContent align="end" className="w-64 mt-4 rounded-[2rem] border-emerald-50 p-3 shadow-2xl shadow-emerald-900/10 bg-white">
+                                <DropdownMenuContent align="end" className="w-64 mt-4 rounded-[2rem] border-emerald-50 p-3 shadow-2xl bg-white border border-slate-100">
                                     <DropdownMenuLabel className="p-4">
                                         <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Тавтай морил</p>
                                         <p className="text-sm font-black text-slate-800 truncate">{user.email}</p>
@@ -133,7 +143,6 @@ const Navbar = () => {
                                     
                                     <DropdownMenuSeparator className="bg-emerald-50 mx-2" />
                                     
-                                    {/* МИНИЙ ПРОФАЙЛ */}
                                     <DropdownMenuItem asChild className="rounded-2xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3 transition-colors">
                                         <Link href="/profile" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest">
                                             <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
@@ -142,29 +151,6 @@ const Navbar = () => {
                                             Миний Профайл
                                         </Link>
                                     </DropdownMenuItem>
-
-                                    <DropdownMenuItem asChild className="rounded-2xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3 transition-colors">
-                                        <Link href="/complete-profile" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest">
-                                            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
-                                                <Settings size={18} />
-                                            </div>
-                                            Тохиргоо
-                                        </Link>
-                                    </DropdownMenuItem>
-
-                                    {isAdmin && (
-                                        <>
-                                            <DropdownMenuSeparator className="bg-emerald-50 mx-2" />
-                                            <DropdownMenuItem asChild className="rounded-2xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3 transition-colors">
-                                                <Link href="/admin" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest text-emerald-600">
-                                                    <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
-                                                        <LayoutDashboard size={18} />
-                                                    </div>
-                                                    Админ Панел
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
 
                                     <DropdownMenuSeparator className="bg-emerald-50 mx-2" />
                                     
@@ -185,16 +171,15 @@ const Navbar = () => {
                             <Button
                                 onClick={handleLogin}
                                 variant="outline"
-                                className={`rounded-full border-2 text-[10px] uppercase tracking-[0.2em] px-8 h-12 font-black transition-all duration-300 shadow-xl active:scale-95 ${scrolled
-                                        ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-emerald-200/50'
-                                        : 'border-white text-white hover:bg-white hover:text-emerald-600 shadow-white/10'
+                                className={`rounded-full border-2 text-[10px] uppercase tracking-[0.2em] px-8 h-12 font-black transition-all duration-300 shadow-xl ${scrolled
+                                        ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
+                                        : 'border-white text-white hover:bg-white hover:text-emerald-600'
                                     }`}
                             >
                                 Нэвтрэх
                             </Button>
                         )
                     )}
-
                     <Menu className={`md:hidden w-6 h-6 cursor-pointer ${scrolled ? 'text-emerald-950' : 'text-white'}`} />
                 </div>
             </div>
