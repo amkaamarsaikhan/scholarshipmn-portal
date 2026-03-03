@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Menu, User as UserIcon, PlusCircle, Home, LayoutDashboard, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,10 +20,30 @@ import {
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
+    const [role, setRole] = useState<string | null>(null);
     const { user, loading } = useAuth();
+    const router = useRouter();
 
-    // Таны админ имэйл (Энийг өөрийнхөөрөө солиорой)
-    const isAdmin = user?.email === "amkaamarsaikhan@gmail.com";
+    // 1. Firestore-оос хэрэглэгчийн эрхийг (role) шалгах
+    useEffect(() => {
+        const checkRole = async () => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        setRole(userDoc.data().role || "user");
+                    }
+                } catch (error) {
+                    console.error("Role fetch error:", error);
+                }
+            } else {
+                setRole(null);
+            }
+        };
+        checkRole();
+    }, [user]);
+
+    const isAdmin = role === "admin";
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -33,8 +55,8 @@ const Navbar = () => {
         const provider = new GoogleAuthProvider();
         try {
             await signInWithPopup(auth, provider);
-            // Нэвтэрсний дараа Firestore-оос шалгаад /complete-profile руу 
-            // шилжүүлэх логикийг энд эсвэл useEffect-д нэмж болно.
+            // Нэвтэрсний дараа нүүр хуудас руу шилжүүлэх
+            router.push("/");
         } catch (error: any) {
             console.error("Login Error:", error);
         }
@@ -43,6 +65,7 @@ const Navbar = () => {
     const handleLogout = async () => {
         try {
             await signOut(auth);
+            router.push("/");
         } catch (error) {
             console.error("Logout Error:", error);
         }
@@ -56,7 +79,7 @@ const Navbar = () => {
             }`}>
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
 
-                {/* LOGO ХЭСЭГ */}
+                {/* LOGO */}
                 <Link href="/" className={`flex items-center text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${
                     scrolled ? 'text-emerald-950' : 'text-white'
                 }`}>
@@ -66,22 +89,23 @@ const Navbar = () => {
                    </span>
                 </Link>
 
-                {/* ЦЭСҮҮД */}
+                {/* ЦЭСҮҮД (Зөвхөн нэвтэрсэн хэрэглэгчдэд харагдана) */}
                 <div className="hidden md:flex items-center space-x-8 text-[11px] uppercase tracking-[0.2em] font-bold">
                     {user && (
                         <>
-                            <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${
-                                scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
-                            }`}>
-                                <PlusCircle size={14} /> Тэтгэлэг нэмэх
-                            </Link>
-                            
                             {isAdmin && (
-                                <Link href="/admin/users" className={`flex items-center gap-1.5 transition-colors ${
-                                    scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
-                                }`}>
-                                    <LayoutDashboard size={14} /> Админ Хяналт
-                                </Link>
+                                <>
+                                    <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${
+                                        scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                    }`}>
+                                        <PlusCircle size={14} /> Тэтгэлэг нэмэх
+                                    </Link>
+                                    <Link href="/admin" className={`flex items-center gap-1.5 transition-colors ${
+                                        scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                    }`}>
+                                        <LayoutDashboard size={14} /> Админ Хяналт
+                                    </Link>
+                                </>
                             )}
                         </>
                     )}
@@ -101,7 +125,7 @@ const Navbar = () => {
                                                 {user.displayName?.split(' ')[0] || "User"}
                                             </span>
                                             <span className="text-[9px] text-emerald-500 font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
-                                                Миний цэс
+                                                {isAdmin ? "Админ Эрх" : "Миний цэс"}
                                             </span>
                                         </div>
                                         {user.photoURL ? (
@@ -123,13 +147,15 @@ const Navbar = () => {
                                             <Settings size={14} /> Мэдээлэл шинэчлэх
                                         </Link>
                                     </DropdownMenuItem>
+                                    
                                     {isAdmin && (
                                         <DropdownMenuItem className="rounded-xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3">
-                                            <Link href="/admin/users" className="flex items-center w-full gap-2 text-xs font-bold uppercase tracking-tight text-emerald-600">
-                                                <LayoutDashboard size={14} /> Хэрэгчдийн жагсаалт
+                                            <Link href="/admin" className="flex items-center w-full gap-2 text-xs font-bold uppercase tracking-tight text-emerald-600">
+                                                <LayoutDashboard size={14} /> Хэрэглэгчдийн жагсаалт
                                             </Link>
                                         </DropdownMenuItem>
                                     )}
+                                    
                                     <DropdownMenuSeparator className="bg-emerald-50" />
                                     <DropdownMenuItem 
                                         onClick={handleLogout}
@@ -145,8 +171,8 @@ const Navbar = () => {
                                 variant="outline"
                                 className={`rounded-full border-2 text-[10px] uppercase tracking-widest px-8 h-10 font-black transition-all duration-300 shadow-lg active:scale-95 ${
                                     scrolled
-                                    ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-emerald-100'
-                                    : 'border-white text-grey hover:bg-white/20 hover:border-white shadow-black/10'
+                                    ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
+                                    : 'border-white text-white hover:bg-white hover:text-emerald-600'
                                 }`}
                             >
                                 Нэвтрэх
