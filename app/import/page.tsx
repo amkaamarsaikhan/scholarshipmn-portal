@@ -5,264 +5,252 @@ import { useState } from "react";
 import { Database, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
 
 const scholarshipsData = [
-  // 1-10: Government Full Scholarships
+  // --- 1-10: ЗАСГИЙН ГАЗРЫН БҮРЭН ТЭТГЭЛЭГ (Хамгийн өндөр квоттой) ---
   { 
-    title: "Global Korea Scholarship (GKS)", country: "South Korea", organization: "NIIED", category: "Full", deadline: "2026-03-15", link: "https://www.studyinkorea.go.kr", description: "БНСУ-ын Засгийн газрын бүрэн тэтгэлэг. Төлбөр, амьжиргаа багтсан.",
-    requirements: ["GPA 80%+", "TOEPIK level 3+", "Bachelor degree", "Under 25/40 age"],
-    checklist: ["GKS Application Form", "Personal Statement", "Study Plan", "2 Letters of Recommendation", "Medical Assessment"]
+    title: "Stipendium Hungaricum", country: "Hungary", organization: "Tempus Public Foundation", category: "Full", deadline: "2026-01-15", link: "https://stipendiumhungaricum.hu", 
+    description: "Унгарын засгийн газрын тэтгэлэг. Жил бүр Монгол Улсад 200 квот олгодог, хамгийн хүртээмжтэй тэтгэлэг.",
+    requirements: ["IELTS 5.5+", "Голч дүн 3.0+", "БШУЯ-ны бүртгэл", "Эрүүл мэндийн шинжилгээ"],
+    checklist: ["DreamApply Online Application", "Study Plan (Min 3000 chars)", "Motivation Letter", "Medical Certificate", "Passport Copy"]
   },
   { 
-    title: "MEXT Scholarship", country: "Japan", organization: "MEXT", category: "Full", deadline: "2026-05-20", link: "https://www.mn.emb-japan.go.jp", description: "Японы Засгийн газрын тэтгэлэг. Бүх шатанд олгогдоно.",
-    requirements: ["Japanese or English skills", "High GPA", "Passed Exam", "Research Plan"],
-    checklist: ["Placement Preference Form", "Research Plan", "Official Transcripts", "Medical Certificate", "Thesis Abstract"]
+    title: "Australia Awards Mongolia", country: "Australia", organization: "DFAT", category: "Full", deadline: "2026-04-30", link: "https://www.australiaawardsmongolia.org", 
+    description: "Австралид магистрт суралцах бүрэн тэтгэлэг. Төрийн болон хувийн хэвшлийнхэнд тусдаа квоттой.",
+    requirements: ["IELTS 6.5+ (no band < 6.0)", "2 жил ажилласан туршлага", "Бакалаврын зэрэг", "Монголын хөгжилд хувь нэмэр оруулах"],
+    checklist: ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts (Notarized English)"]
   },
   { 
-    title: "Fulbright Student Program", country: "USA", organization: "US Embassy", category: "Full", deadline: "2026-05-15", link: "https://mn.usembassy.gov", description: "АНУ-д магистрт суралцах нэр хүндтэй тэтгэлэг.",
-    requirements: ["IELTS 7.0+", "2 years work experience", "Bachelor degree", "Mongolian citizen"],
-    checklist: ["Online Application", "TOEFL/IELTS Score", "3 Essays", "Diplomas", "3 References"]
+    title: "Global Korea Scholarship (GKS)", country: "South Korea", organization: "NIIED", category: "Full", deadline: "2026-03-15", link: "https://www.studyinkorea.go.kr", 
+    description: "БНСУ-ын Засгийн газрын тэтгэлэг. ЭСЯ-ны квот болон Их сургуулийн квот гэсэн 2 замаар өгөх боломжтой.",
+    requirements: ["GPA 80%+", "Нас 25/40-өөс доош", "Бакалавр/Магистрын диплом", "Солонгос хэлний бэлтгэл 1 жил"],
+    checklist: ["Application Forms (1-10)", "Personal Statement", "Study Plan", "2 Recommendation Letters", "Medical Assessment"]
   },
   { 
-    title: "Chevening Scholarship", country: "UK", organization: "UK Gov", category: "Full", deadline: "2026-11-01", link: "https://www.chevening.org", description: "Их Британид магистрт суралцах манлайлагчдын тэтгэлэг.",
-    requirements: ["Work experience (2,800 hrs)", "Bachelor degree", "Return to home country", "3 UK University choices"],
-    checklist: ["4 Essays", "Passport", "Education Documents", "2 References"]
+    title: "MEXT (Monbukagakusho)", country: "Japan", organization: "MEXT", category: "Full", deadline: "2026-05-20", link: "https://www.mn.emb-japan.go.jp", 
+    description: "Японы засгийн газрын тэтгэлэг. Шалгалт дээр суурилдаг бөгөөд судалгааны ажил маш чухал.",
+    requirements: ["Япон эсвэл Англи хэлний мэдлэг", "Математикийн шалгалт", "Судалгааны төлөвлөгөө", "Насны хязгаартай"],
+    checklist: ["Application Form", "Field of Study & Research Plan", "Placement Preference Form", "Medical Certificate"]
   },
   { 
-    title: "Stipendium Hungaricum", country: "Hungary", organization: "TPF", category: "Full", deadline: "2026-01-15", link: "https://stipendiumhungaricum.hu", description: "Унгарын засгийн газрын тэтгэлэг. Монголчуудад хамгийн их квоттой.",
-    requirements: ["IELTS 5.5+", "High School/Bachelor diploma", "Medical checkup", "Motivation letter"],
-    checklist: ["DreamApply Application", "Study Plan", "Transcript of Records", "Passport Copy", "Medical Certificate"]
+    title: "Chevening Scholarship", country: "UK", organization: "FCDO", category: "Full", deadline: "2026-11-01", link: "https://www.chevening.org/scholarship/mongolia/", 
+    description: "Их Британийн магистрын бүрэн тэтгэлэг. Манлайлагч, ирээдүйн шийдвэр гаргагчдад зориулсан.",
+    requirements: ["2 жил ажилласан туршлага (2800 цаг)", "Бакалаврын диплом", "Их Британийн 3 сургууль сонгох", "Манлайлах чадвар"],
+    checklist: ["4 Essays (Leadership, Networking, Study in UK, Career Plan)", "2 Reference Letters", "Passport", "Education Docs"]
   },
   { 
-    title: "Australia Awards", country: "Australia", organization: "DFAT", category: "Full", deadline: "2026-04-30", link: "https://www.australiaawardsmongolia.org", description: "Австралид суралцах бүрэн тэтгэлэг.",
-    requirements: ["IELTS 6.5+", "2 years work experience", "Mongolian citizen", "Development focus"],
-    checklist: ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Proof of Citizenship"]
+    title: "Fulbright Foreign Student Program", country: "USA", organization: "State Department", category: "Full", deadline: "2026-05-15", link: "https://mn.usembassy.gov", 
+    description: "АНУ-ын Засгийн газрын магистрын тэтгэлэг. Монгол дахь ЭСЯ-аар дамжуулан сонгон шалгаруулдаг.",
+    requirements: ["IELTS 7.0+ / TOEFL 80+", "2 жил ажилласан туршлага", "Монголд оршин сууж байх", "Бакалаврын зэрэг"],
+    checklist: ["Online Application", "Personal Statement", "Study Objectives Essay", "3 Letters of Recommendation", "Transcripts"]
   },
   { 
-    title: "DAAD Scholarship", country: "Germany", organization: "DAAD", category: "Full", deadline: "2026-08-31", link: "https://www.daad.de", description: "Германд магистр, докторт суралцах тэтгэлэг.",
-    requirements: ["2 years experience", "English or German skills", "Bachelor degree", "Academic excellence"],
-    checklist: ["DAAD Form", "CV (Europass)", "Motivation Letter", "Reference from Professor"]
+    title: "DAAD EPOS Scholarship", country: "Germany", organization: "DAAD", category: "Full", deadline: "2026-10-31", link: "https://www.daad.de", 
+    description: "Германд хөгжлийн чиглэлээр магистр, докторт суралцах мэргэжилтнүүдэд зориулсан тэтгэлэг.",
+    requirements: ["2 жил мэргэжлээрээ ажилласан", "IELTS/TOEFL эсвэл Герман хэл", "Бакалавр төгссөнөөс хойш 6 жил болоогүй"],
+    checklist: ["DAAD Application Form", "Hand-signed CV (Europass)", "Motivation Letter", "Employer Reference", "Proof of Work"]
   },
   { 
-    title: "Erasmus Mundus Masters", country: "EU", organization: "EU Commission", category: "Full", deadline: "2026-02-15", link: "https://erasmus-plus.ec.europa.eu", description: "Европын 2-оос дээш улсад суралцах хөтөлбөр.",
-    requirements: ["Bachelor degree", "IELTS 6.5+", "Research interest", "EU Mobility"],
-    checklist: ["Combined Application", "Motivation Letter", "CV", "English Certificate"]
+    title: "Chinese Government Scholarship (CSC)", country: "China", organization: "CSC", category: "Full", deadline: "2026-03-31", link: "https://www.campuschina.org", 
+    description: "Хятадын засгийн газрын тэтгэлэг (Type A/B). БШУЯ-аар дамжуулах эсвэл сургуульдаа шууд хандах боломжтой.",
+    requirements: ["HSK 4+ (Хятад хэл дээр сурах бол)", "GPA 3.0+", "Эрүүл мэнд сайн байх", "Насны хязгаартай"],
+    checklist: ["CSC Online Form", "Physical Examination Form", "Non-criminal Record", "Study Plan", "2 Recommendation Letters"]
   },
   { 
-    title: "Turkiye Burslari", country: "Turkey", organization: "YTB", category: "Full", deadline: "2026-02-20", link: "https://www.turkiyeburslari.gov.tr", description: "Туркийн бүх шатны бүрэн тэтгэлэг.",
-    requirements: ["GPA 70/75/90%", "Under age limit", "Not in Turkey", "Entrance exam"],
-    checklist: ["ID/Passport", "Transcript", "Intent Letter", "Exam Scores"]
+    title: "Türkiye Bursları", country: "Turkey", organization: "YTB", category: "Full", deadline: "2026-02-20", link: "https://www.turkiyeburslari.gov.tr", 
+    description: "Туркийн бүх шатны (Бакалавр, Магистр, Доктор) бүрэн тэтгэлэг. Монголчууд маш ихээр хамрагддаг.",
+    requirements: ["GPA 70% (Bachelor) / 75% (Graduate)", "Нас 21/30/35-аас доош", "Турк хэлний бэлтгэл 1 жил"],
+    checklist: ["ID/Passport", "Transcript", "Diploma", "Letter of Intent", "Research Proposal (Graduate only)"]
   },
   { 
-    title: "Taiwan ICDF Scholarship", country: "Taiwan", organization: "ICDF", category: "Full", deadline: "2026-03-15", link: "https://www.icdf.org.tw", description: "Тайваньд магистр, докторт суралцах тэтгэлэг.",
-    requirements: ["English proficiency", "ROC Partner Uni admission", "Health certificate", "No other scholarship"],
-    checklist: ["Online Form", "Diploma", "Health Report", "2 Recommendation Letters"]
+    title: "Taiwan MOE Scholarship", country: "Taiwan", organization: "MOE", category: "Full", deadline: "2026-03-31", link: "https://www.roc-taiwan.org/mn_mn/", 
+    description: "Тайванийн Төлөөлөгчийн газраар дамжуулан Монголчуудад олгодог тэтгэлэг.",
+    requirements: ["English or Chinese proficiency", "ROC Partner Uni admission", "High academic performance", "No other scholarship"],
+    checklist: ["Online Application", "Diploma", "Transcripts", "2 Recommendation Letters", "Study Plan"]
   },
 
-  // 11-20: Top University Scholarships
+  // --- 11-20: ОЛОН УЛСЫН & ЕВРОПЫН САНГИЙН ТЭТГЭЛЭГ ---
   { 
-    title: "Gates Cambridge Scholarship", country: "UK", organization: "Cambridge", category: "Full", deadline: "2026-01-05", link: "https://www.gatescambridge.org", description: "Кэмбрижийн их сургуулийн дэлхийн шилдэг тэтгэлэг.",
-    requirements: ["Outstanding intellect", "Leadership potential", "Commitment to others", "Cambridge admission"],
-    checklist: ["Uni Application", "Gates Statement", "Research Proposal", "References"]
+    title: "Erasmus Mundus Joint Masters", country: "Europe", organization: "EU Commission", category: "Full", deadline: "2026-02-15", link: "https://erasmus-plus.ec.europa.eu", 
+    description: "Европын холбооны 2-оос дээш улсад дамжин суралцах магистрын тэтгэлэг. Тэтгэмж маш өндөр.",
+    requirements: ["IELTS 6.5+", "Бакалаврын зэрэг", "Academic excellence", "International mindset"],
+    checklist: ["Common Application", "CV Europass", "2 Reference Letters", "Motivation Letter", "Proof of Residence"]
   },
   { 
-    title: "Rhodes Scholarship", country: "UK", organization: "Oxford", category: "Full", deadline: "2025-10-01", link: "https://www.rhodeshouse.ox.ac.uk", description: "Оксфордын их сургуулийн элит тэтгэлэг.",
-    requirements: ["Ages 18-24", "High academic standing", "Sporting/Social activity", "Oxford admission"],
+    title: "Swedish Institute SISGP", country: "Sweden", organization: "Swedish Institute", category: "Full", deadline: "2026-02-15", link: "https://si.se", 
+    description: "Шведийн засгийн газрын магистрын тэтгэлэг. Монгол улс хамрагдах боломжтой орны жагсаалтад бий.",
+    requirements: ["3,000 цагийн ажлын туршлага", "Citizen of SI country", "Leadership experience", "Master's admission in Sweden"],
+    checklist: ["CV (SI Template)", "Proof of Work Experience", "2 Reference Letters", "Motivation Letter"]
+  },
+  { 
+    title: "Eiffel Excellence Scholarship", country: "France", organization: "Campus France", category: "Full", deadline: "2026-01-10", link: "https://www.campusfrance.org", 
+    description: "Францын засгийн газрын магистр, докторт суралцах шилдэг оюутны тэтгэлэг.",
+    requirements: ["Top tier academic performance", "French/English skill", "Applied via French University", "Ages under 25/30"],
+    checklist: ["Curriculum Vitae", "Motivation Letter", "Professional Project", "Academic Transcripts"]
+  },
+  { 
+    title: "Orange Knowledge Program (OKP)", country: "Netherlands", organization: "Nuffic", category: "Full", deadline: "2026-03-15", link: "https://www.studyinholland.nl", 
+    description: "Нидерландад хөгжлийн чиглэлээр магистрт суралцах мэргэжилтнүүдэд зориулсан.",
+    requirements: ["Employer Statement", "Passport of OKP country", "English proficiency", "Professional experience"],
+    checklist: ["Employer Statement", "Passport Copy", "Motivation Letter", "Admission Letter"]
+  },
+  { 
+    title: "VLIR-UOS Scholarships", country: "Belgium", organization: "VLIR-UOS", category: "Full", deadline: "2026-02-01", link: "https://www.vliruos.be", 
+    description: "Бельгид хөгжлийн асуудлаар магистрт суралцах бүрэн тэтгэлэг.",
+    requirements: ["Under 35 years old", "Citizen of partner country", "English proficiency", "Academic background"],
+    checklist: ["Application Form", "Passport Copy", "Motivation Essay", "Reference Letters"]
+  },
+  { 
+    title: "Stipendium Hungaricum (PhD)", country: "Hungary", organization: "TPF", category: "Full", deadline: "2026-01-15", link: "https://stipendiumhungaricum.hu", 
+    description: "Унгарт докторын зэрэг хамгаалахад зориулсан бүрэн тэтгэлэг.",
+    requirements: ["Master's degree", "Supervisor Acceptance", "Research Proposal", "English proficiency"],
+    checklist: ["Research Plan", "Acceptance from Supervisor", "Transcripts", "Medical Certificate"]
+  },
+  { 
+    title: "Invest Your Talent in Italy", country: "Italy", organization: "MAECI", category: "Full", deadline: "2026-03-01", link: "https://investyourtalentitaly.esteri.it", 
+    description: "Италид Инженер, Дизайн, Менежментээр магистрт сурч, дадлага хийх хөтөлбөр.",
+    requirements: ["Bachelor degree", "IELTS 6.0+", "Portfolio (if Design)", "Mongolian citizen"],
+    checklist: ["Video CV (1 min)", "Motivation Letter", "Admission Proof", "Transcripts"]
+  },
+  { 
+    title: "Swiss Gov Excellence Scholarships", country: "Switzerland", organization: "SBFN", category: "Full", deadline: "2025-11-30", link: "https://www.sbfi.admin.ch", 
+    description: "Швейцарийн засгийн газрын судалгаа, докторын тэтгэлэг.",
+    requirements: ["Master's degree", "Swiss Professor contact", "Research project", "Under 35 years old"],
+    checklist: ["Application Form", "Research Proposal", "Contact with Supervisor", "CV"]
+  },
+  { 
+    title: "Hubert H. Humphrey Fellowship", country: "USA", organization: "US Embassy", category: "Full", deadline: "2026-06-01", link: "https://www.humphreyfellowship.org", 
+    description: "АНУ-д мэргэжил дээшлүүлэх, туршлага солилцох 10 сарын хөтөлбөр.",
+    requirements: ["5 years work experience", "English proficiency", "Leadership potential", "Bachelor degree"],
+    checklist: ["Program Plan", "Employer Support", "Essays", "CV"]
+  },
+  { 
+    title: "Joint Japan/World Bank (JJ/WBGSP)", country: "Global", organization: "World Bank", category: "Full", deadline: "2026-05-20", link: "https://www.worldbank.org", 
+    description: "Хөгжлийн бодлогын чиглэлээр магистрт суралцагсдад зориулсан.",
+    requirements: ["3 years work experience", "Bachelor degree", "Developing country citizen", "Return to home country"],
+    checklist: ["Admission Proof", "Employer Certificate", "2 Recommendation Letters", "Medical Form"]
+  },
+
+  // --- 21-30: ТОП ИХ СУРГУУЛИУДЫН ТЭТГЭЛЭГ ---
+  { 
+    title: "Gates Cambridge Scholarship", country: "UK", organization: "Cambridge", category: "Full", deadline: "2026-01-05", link: "https://www.gatescambridge.org", 
+    description: "Кэмбрижийн их сургуулийн дэлхийн манлайлагчдад зориулсан.",
+    requirements: ["Outstanding intellect", "Leadership potential", "Cambridge Graduate Admission", "Commitment to others"],
+    checklist: ["Gates Statement", "Research Proposal", "3 References", "CV"]
+  },
+  { 
+    title: "Knight-Hennessy Scholars", country: "USA", organization: "Stanford", category: "Full", deadline: "2025-10-10", link: "https://knight-hennessy.stanford.edu", 
+    description: "Стэнфордын их сургуулийн шилдэг оюутнуудын тэтгэлэг.",
+    requirements: ["Stanford Admission", "Independent thought", "Civic mindset", "Purposeful leadership"],
+    checklist: ["Resume", "Essays", "Video Story", "2 Recommendations"]
+  },
+  { 
+    title: "Schwarzman Scholars", country: "China", organization: "Tsinghua", category: "Full", deadline: "2025-09-20", link: "https://www.schwarzmanscholars.org", 
+    description: "Хятадын Цинхуа их сургуульд магистрт суралцах олон улсын тэтгэлэг.",
+    requirements: ["Ages 18-28", "Bachelor degree", "English proficiency", "Global leadership interest"],
+    checklist: ["Essays", "CV", "3 Recommendations", "Video Intro"]
+  },
+  { 
+    title: "Lester B. Pearson Scholarship", country: "Canada", organization: "UofT", category: "Full", deadline: "2026-01-15", link: "https://future.utoronto.ca", 
+    description: "Торонтогийн их сургуулийн бакалаврын тэтгэлэг.",
+    requirements: ["International student", "School nomination", "Original thinker", "Academic excellence"],
+    checklist: ["School Nomination", "Online Application", "Student Essays", "References"]
+  },
+  { 
+    title: "KAIST Undergraduate Scholarship", country: "South Korea", organization: "KAIST", category: "Full", deadline: "2026-01-05", link: "https://admission.kaist.ac.kr", 
+    description: "Солонгосын шинжлэх ухаан, технологийн шилдэг сургууль.",
+    requirements: ["High school graduate", "English proficiency", "Strong STEM background", "Financial need"],
+    checklist: ["Transcript", "Recommendation Letter", "English Score", "Identity Proof"]
+  },
+  { 
+    title: "Rhodes Scholarship", country: "UK", organization: "Oxford", category: "Full", deadline: "2025-10-01", link: "https://www.rhodeshouse.ox.ac.uk", 
+    description: "Оксфордын их сургуулийн хамгийн нэр хүндтэй тэтгэлэг.",
+    requirements: ["High academic record", "Leadership", "Ages 18-24", "Oxford admission"],
     checklist: ["Personal Statement", "List of Activities", "6 References", "Proof of Identity"]
   },
   { 
-    title: "Knight-Hennessy Scholars", country: "USA", organization: "Stanford", category: "Full", deadline: "2025-10-10", link: "https://knight-hennessy.stanford.edu", description: "Стэнфордын их сургуулийн манлайллын тэтгэлэг.",
-    requirements: ["Independent thought", "Purposeful leadership", "Civic mindset", "Stanford graduate admission"],
-    checklist: ["Online Application", "Resume", "Two Recommendation Letters", "Video Story"]
+    title: "UST PhD Scholarship", country: "South Korea", organization: "UST", category: "Full", deadline: "2026-04-10", link: "https://ust.ac.kr", 
+    description: "Солонгосын Эрдэм шинжилгээний хүрээлэнгүүдэд судалгаа хийх PhD.",
+    requirements: ["Master's degree", "IELTS/TOEFL score", "STEM field background", "Research interest"],
+    checklist: ["Research Proposal", "Master's Thesis", "Transcripts", "Language Certificate"]
   },
   { 
-    title: "Schwarzman Scholars", country: "China", organization: "Tsinghua", category: "Full", deadline: "2025-09-20", link: "https://www.schwarzmanscholars.org", description: "Цинхуа их сургуулийн магистрын тэтгэлэг.",
-    requirements: ["Undergraduate degree", "Ages 18-28", "English proficiency", "Leadership skills"],
-    checklist: ["Essays", "CV", "3 Recommendation Letters", "Video Introduction"]
+    title: "Clarendon Fund", country: "UK", organization: "Oxford", category: "Full", deadline: "2026-01-20", link: "https://www.ox.ac.uk/clarendon", 
+    description: "Оксфордын магистр, докторын бүрэн тэтгэлэг.",
+    requirements: ["Academic merit", "Graduate admission in Oxford", "Future potential", "Top GPA"],
+    checklist: ["Course Application", "Transcripts", "References", "Personal Statement"]
   },
   { 
-    title: "Lester B. Pearson", country: "Canada", organization: "UofT", category: "Full", deadline: "2026-01-15", link: "https://future.utoronto.ca", description: "Торонтогийн их сургуулийн бакалаврын тэтгэлэг.",
-    requirements: ["International student", "School nomination", "Original/Creative thinker", "Leadership skills"],
-    checklist: ["School Nomination", "Student Application", "Essay", "Teacher Reference"]
+    title: "TU Delft Excellence Scholarship", country: "Netherlands", organization: "TU Delft", category: "Full", deadline: "2025-12-01", link: "https://www.tudelft.nl", 
+    description: "Инженерийн шилдэг сургуулийн тэтгэлэг.",
+    requirements: ["GPA 80%+", "BSc from outside NL", "STEM major", "MSc admission"],
+    checklist: ["Scholarship Application Form", "2 Reference Letters", "GRE Score", "Transcripts"]
   },
   { 
-    title: "KAIST Undergraduate", country: "South Korea", organization: "KAIST", category: "Full", deadline: "2026-01-05", link: "https://admission.kaist.ac.kr", description: "Солонгосын шинжлэх ухааны шилдэг сургууль.",
-    requirements: ["International status", "High school graduation", "English/Korean skills", "Strong STEM background"],
-    checklist: ["Online Form", "Recommendation Letter", "Transcript", "English Score"]
-  },
-  { 
-    title: "SNU President Fellowship", country: "South Korea", organization: "SNU", category: "Full", deadline: "2026-03-30", link: "https://en.snu.ac.kr", description: "Сөүлийн үндэсний сургуулийн докторын тэтгэлэг.",
-    requirements: ["Faculty member without PhD", "Developing country citizen", "SNU PhD admission", "Language skill"],
-    checklist: ["Fellowship Form", "Certificate of Employment", "PhD Admission Doc", "Research Plan"]
-  },
-  { 
-    title: "UST PhD Scholarship", country: "South Korea", organization: "UST", category: "Full", deadline: "2026-04-10", link: "https://ust.ac.kr", description: "Шинжлэх ухаан, технологийн нэгдсэн сургууль.",
-    requirements: ["Master's degree", "English score (TOEFL/IELTS)", "Research proposal", "STEM field"],
-    checklist: ["Application Form", "Transcripts", "Master's Thesis", "English Certificate"]
-  },
-  { 
-    title: "ADB-Japan Scholarship", country: "Japan", organization: "ADB", category: "Full", deadline: "2026-06-30", link: "https://www.adb.org", description: "Азийн хөгжлийн банкны магистрын тэтгэлэг.",
-    requirements: ["ADB member country citizen", "2 years work experience", "Under 35 years old", "Return to home country"],
-    checklist: ["Admission Letter", "Income Tax Return", "Employer Certificate", "Application Form"]
-  },
-  { 
-    title: "Clarendon Fund", country: "UK", organization: "Oxford", category: "Full", deadline: "2026-01-20", link: "https://www.ox.ac.uk", description: "Оксфордын их сургуулийн магистр, докторын тэтгэлэг.",
-    requirements: ["High academic score", "Potential for research", "Oxford graduate application", "Top-tier GPA"],
-    checklist: ["University Application Form", "Research Proposal", "References", "Transcripts"]
+    title: "HKU Entrance Scholarship", country: "Hong Kong", organization: "HKU", category: "Full", deadline: "2026-01-30", link: "https://admissions.hku.hk", 
+    description: "Хонг Конгийн их сургуулийн бакалаврын тэтгэлэг.",
+    requirements: ["Top exam scores (SAT/IB/AP)", "English proficiency", "Co-curricular activities", "Interview"],
+    checklist: ["Personal Statement", "Academic Results", "School Reference", "Portfolio (Optional)"]
   },
 
-  // 21-30: EU & International
+  // --- 31-40: БУСАД ОРНУУД & ТУСГАЙ ТЭТГЭЛЭГҮҮД ---
   { 
-    title: "Swiss Gov Excellence", country: "Switzerland", organization: "SBFN", category: "Full", deadline: "2025-11-30", link: "https://www.sbfi.admin.ch", description: "Швейцарийн засгийн газрын судалгааны тэтгэлэг.",
-    requirements: ["Master's degree", "Research proposal", "Swiss Professor contact", "Under age limit"],
-    checklist: ["Application Form", "CV", "Research Proposal", "2 Recommendation Letters"]
+    title: "Australia Awards (Short Courses)", country: "Australia", organization: "DFAT", category: "Full", deadline: "2026-08-30", link: "https://www.australiaawardsmongolia.org", 
+    description: "Мэргэжилтнүүдэд зориулсан 2-4 долоо хоногийн эрчимжүүлсэн сургалт.",
+    requirements: ["Current employment", "Related field", "English basic skill", "Mongolian citizen"],
+    checklist: ["Employer Support", "Application Form", "CV", "Passport"]
   },
   { 
-    title: "Swedish Institute SISGP", country: "Sweden", organization: "SI", category: "Full", deadline: "2026-02-10", link: "https://si.se", description: "Шведийн манлайлагчдын тэтгэлэг.",
-    requirements: ["3,000 hrs work experience", "Citizen of SI country", "Leadership experience", "Master's admission"],
-    checklist: ["Motivation Letter", "CV", "Proof of Work/Leadership", "Copy of Passport"]
+    title: "Manaaki New Zealand Scholarships", country: "New Zealand", organization: "Gov", category: "Full", deadline: "2026-02-28", link: "https://www.nzscholarships.govt.nz", 
+    description: "Шинэ Зеландын засгийн газрын бүрэн тэтгэлэг.",
+    requirements: ["Ages 18-39", "2 years work experience", "English proficiency", "Related field"],
+    checklist: ["Online Form", "Work Proof", "Academic Transcripts", "Passport Copy"]
   },
   { 
-    title: "Eiffel Excellence", country: "France", organization: "Gov", category: "Full", deadline: "2026-01-10", link: "https://www.campusfrance.org", description: "Францын магистр, докторын тэтгэлэг.",
-    requirements: ["Top academic record", "Ages under 25 (Master)", "Applied to French Uni", "International focus"],
-    checklist: ["Resume", "Motivation Letter", "Transcripts", "Language Certificate"]
+    title: "Russian Government Quota", country: "Russia", organization: "Rossotrudnichestvo", category: "Full", deadline: "2026-02-15", link: "https://mng.rs.gov.ru", 
+    description: "Оросын холбооны улсын засгийн газрын тэтгэлэг. Монгол дахь РТЦ-ээр дамжуулдаг.",
+    requirements: ["Exam success", "Russian language", "Academic record", "All levels"],
+    checklist: ["Application Form", "Transcripts", "Passport Translation", "Health Certificate"]
   },
   { 
-    title: "Orange Knowledge Program", country: "Netherlands", organization: "Nuffic", category: "Full", deadline: "2026-03-15", link: "https://www.studyinholland.nl", description: "Нидерландад суралцах богино хугацааны тэтгэлэг.",
-    requirements: ["Professional experience", "Employer statement", "Passport of OKP country", "Course admission"],
-    checklist: ["Employer Statement", "Passport", "Admission Letter", "Motivation Form"]
+    title: "ICCR Scholarship", country: "India", organization: "ICCR", category: "Full", deadline: "2026-04-30", link: "https://a2ascholarships.iccr.gov.in", 
+    description: "Энэтхэгийн засгийн газрын тэтгэлэг. Бүх шатанд олгодог.",
+    requirements: ["English proficiency test (at Embassy)", "Health certificate", "Age limit 18-30/45", "Academic record"],
+    checklist: ["Online Form", "Physical Fitness", "Transcripts", "Passport Photo"]
   },
   { 
-    title: "VLIR-UOS Scholarship", country: "Belgium", organization: "Gov", category: "Full", deadline: "2026-02-01", link: "https://www.vliruos.be", description: "Бельгид магистрт суралцах тэтгэлэг.",
-    requirements: ["Under 35 years old", "Citizen of partner country", "English skill", "Development theme"],
-    checklist: ["Application Form", "Passport Copy", "Diplomas", "Transcript of Records"]
+    title: "Romania Government Scholarship", country: "Romania", organization: "MFA", category: "Full", deadline: "2026-03-01", link: "https://studyinromania.gov.ro", 
+    description: "Румын улсад суралцах бүрэн тэтгэлэг. Румын хэлний бэлтгэлтэй.",
+    requirements: ["Good GPA", "Any field except Med/Dentistry", "Non-EU citizen", "Academic history"],
+    checklist: ["Birth Certificate", "Diplomas", "Passport Copy", "Curriculum Vitae"]
   },
   { 
-    title: "Stipendium Hungaricum (Med)", country: "Hungary", organization: "TPF", category: "Full", deadline: "2026-01-15", link: "https://stipendiumhungaricum.hu", description: "Унгарт анагаахын чиглэлээр суралцах тэтгэлэг.",
-    requirements: ["IELTS 6.0+", "High GPA", "Medical checkup", "Biology/Chemistry knowledge"],
-    checklist: ["Application Form", "Study Plan", "Health Certificate", "Transcript"]
+    title: "Brunei Darussalam Scholarship", country: "Brunei", organization: "MFA", category: "Full", deadline: "2026-02-15", link: "https://www.mfa.gov.bn", 
+    description: "Бруней улсын засгийн газрын тэтгэлэг. Магистр, Бакалавр.",
+    requirements: ["English proficiency", "Under 25/35 years old", "Academic record", "Health check"],
+    checklist: ["Application Form", "Security Clearance", "Medical Form", "Recommendation Letters"]
   },
   { 
-    title: "Bologna Uni Grant", country: "Italy", organization: "UNIBO", category: "Full", deadline: "2026-03-31", link: "https://www.unibo.it", description: "Италийн хамгийн эртний сургуулийн тэтгэлэг.",
-    requirements: ["SAT/GRE/TOLC scores", "International status", "Under age 30", "University enrollment"],
-    checklist: ["Exam Certificates", "Income Statement", "Passport", "Enrolment Form"]
+    title: "Bologna University Grant", country: "Italy", organization: "UNIBO", category: "Full", deadline: "2026-03-31", link: "https://www.unibo.it", 
+    description: "Италийн Болонья их сургуульд суралцах тэтгэлэг.",
+    requirements: ["SAT/GRE/TOLC test scores", "Age under 30", "University enrollment", "International student"],
+    checklist: ["Test Score Results", "Income Statement", "Passport", "Enrolment Confirmation"]
   },
   { 
-    title: "Lund Global Scholarship", country: "Sweden", organization: "Lund", category: "Partial", deadline: "2026-02-15", link: "https://www.lunduniversity.lu.se", description: "Лунд их сургуулийн сургалтын төлбөрийн тэтгэлэг.",
-    requirements: ["Non-EU citizen", "Academic excellence", "Master's admission", "Applied via UniAdmissions"],
-    checklist: ["Online Application", "Personal Statement", "Admission Docs", "Scholarship Essay"]
+    title: "Darmasiswa Scholarship", country: "Indonesia", organization: "Gov", category: "Partial", deadline: "2026-03-01", link: "https://darmasiswa.kemdikbud.go.id", 
+    description: "Индонезийн соёл, хэл сурах 1 жилийн хөтөлбөр.",
+    requirements: ["Ages 18-27", "High school graduate", "English proficiency", "Interest in Indonesian culture"],
+    checklist: ["CV", "Medical Certificate", "Passport", "Language Certificate"]
   },
   { 
-    title: "TU Delft Excellence", country: "Netherlands", organization: "TU Delft", category: "Full", deadline: "2025-12-01", link: "https://www.tudelft.nl", description: "Инженерийн шилдэг сургуулийн тэтгэлэг.",
-    requirements: ["GPA 80%+", "BSc from outside NL", "Applied to MSc program", "STEM background"],
-    checklist: ["Scholarship Form", "MSc Admission Form", "Reference Letters", "GRE Score"]
+    title: "Vietnam-Mongolia Gov Scholarship", country: "Vietnam", organization: "Gov", category: "Full", deadline: "2026-07-30", link: "http://icd.edu.vn", 
+    description: "Хоёр орны засгийн газрын хэлэлцээрээр олгодог тэтгэлэг.",
+    requirements: ["BShUYa Nomination", "Good GPA", "Health clearance", "Vietnamese language prep"],
+    checklist: ["Application Form", "Transcripts", "Medical Record", "Passport"]
   },
   { 
-    title: "ETH Zurich Excellence", country: "Switzerland", organization: "ETH", category: "Full", deadline: "2025-12-15", link: "https://ethz.ch", description: "Дэлхийн шилдэг техникийн сургуулийн тэтгэлэг.",
-    requirements: ["Top tier academic performance", "Bachelor GPA 3.5+", "Contact with professor", "Master's admission"],
-    checklist: ["Pre-Proposal for Thesis", "CV", "2 Letters of Reference", "Transcripts"]
-  },
-
-  // 31-40: North America & Tech
-  { 
-    title: "Vanier Canada Graduate", country: "Canada", organization: "Gov", category: "Full", deadline: "2025-10-30", link: "https://vanier.gc.ca", description: "Канадын докторын зэргийн дээд тэтгэлэг.",
-    requirements: ["PhD student", "Academic excellence", "Research potential", "Leadership"],
-    checklist: ["CCV", "Research Proposal", "Project References", "3 Transcripts"]
-  },
-  { 
-    title: "Pierre Trudeau Foundation", country: "Canada", organization: "Foundation", category: "Full", deadline: "2025-12-01", link: "https://www.trudeaufoundation.ca", description: "Канадын хүмүүнлэгийн ухааны тэтгэлэг.",
-    requirements: ["PhD in Humanities", "Civic engagement", "Leadership", "Canadian/International PhD"],
-    checklist: ["Foundation Application", "Transcripts", "3 Letters of Reference", "Sample of Work"]
-  },
-  { 
-    title: "Google Generation Scholarship", country: "APAC", organization: "Google", category: "Partial", deadline: "2026-04-10", link: "https://buildyourfuture.withgoogle.com", description: "Технологийн чиглэлийн оюутнуудад зориулсан тэтгэлэг.",
-    requirements: ["Computer Science student", "Academic record", "Passion for tech", "Underrepresented group"],
-    checklist: ["Resume", "Transcript", "2 Essays", "Reference Letter"]
-  },
-  { 
-    title: "Microsoft PhD Fellowship", country: "Global", organization: "Microsoft", category: "Full", deadline: "2025-06-30", link: "https://www.microsoft.com", description: "Компьютерийн шинжлэх ухааны докторын тэтгэлэг.",
-    requirements: ["PhD student (2nd year+)", "Research Excellence", "Computer Science/Math", "University Nomination"],
-    checklist: ["Research Statement", "CV", "3 Letters of Reference", "Thesis Abstract"]
-  },
-  { 
-    title: "Hubert Humphrey Fellowship", country: "USA", organization: "Gov", category: "Full", deadline: "2025-08-01", link: "https://www.humphreyfellowship.org", description: "Мэргэжил дээшлүүлэх солилцооны хөтөлбөр.",
-    requirements: ["Undergraduate degree", "5 years experience", "English proficiency", "Leadership potential"],
-    checklist: ["Application Form", "Program Plan", "References", "Language Score"]
-  },
-  { 
-    title: "AAUW International Fellow", country: "USA", organization: "AAUW", category: "Full", deadline: "2025-11-15", link: "https://www.aauw.org", description: "АНУ-д суралцах эмэгтэйчүүдийн тэтгэлэг.",
-    requirements: ["Non-US citizen women", "Bachelor degree", "Intent to return home", "Academic excellence"],
-    checklist: ["Application Form", "Proposed Program", "3 References", "Transcripts"]
-  },
-  { 
-    title: "Joint Japan/World Bank", country: "Global", organization: "World Bank", category: "Full", deadline: "2026-05-20", link: "https://www.worldbank.org", description: "Хөгжлийн салбарт ажиллагсдад зориулсан тэтгэлэг.",
-    requirements: ["WB member country citizen", "3 years experience", "Bachelor degree", "Development field"],
-    checklist: ["Admission Letter", "Proof of Experience", "References", "Application Form"]
-  },
-  { 
-    title: "OPEC Fund Scholarship", country: "Global", organization: "OPEC", category: "Full", deadline: "2026-04-15", link: "https://opecfund.org", description: "Магистрт суралцах олон улсын тэтгэлэг.",
-    requirements: ["Bachelor degree", "Ages 23-32", "Development related field", "Academic excellence"],
-    checklist: ["Online Form", "Diploma", "Motivation Essay", "Passport Copy"]
-  },
-  { 
-    title: "Aga Khan Foundation", country: "Global", organization: "AKF", category: "Partial", deadline: "2026-03-31", link: "https://www.akdn.org", description: "Магистр, докторын сургалтын зээл тусламж.",
-    requirements: ["Citizen of AKF country", "Under 30 years old", "Master/PhD admission", "Financial need"],
-    checklist: ["Application Form", "Financial Statement", "Admission Proof", "Interview"]
-  },
-  { 
-    title: "Rotary Peace Fellowship", country: "Global", organization: "Rotary", category: "Full", deadline: "2025-05-15", link: "https://www.rotary.org", description: "Энх тайван, аюулгүй байдлын магистр.",
-    requirements: ["3 years work experience", "English proficiency", "Bachelor degree", "Peace/Conflict focus"],
-    checklist: ["Online Application", "Rotary District Nomination", "3 References", "CV"]
-  },
-
-  // 41-50: Asia & Oceania
-  { 
-    title: "Manaaki New Zealand", country: "New Zealand", organization: "Gov", category: "Full", deadline: "2026-02-28", link: "https://www.nzscholarships.govt.nz", description: "Шинэ Зеландын бүрэн тэтгэлэг.",
-    requirements: ["18-39 years old", "Return to home country", "1 yr work experience", "English proficiency"],
-    checklist: ["Online Application", "English Scores", "Work Proof", "Health Clearance"]
-  },
-  { 
-    title: "Turkiye Graduate Scholarship", country: "Turkey", organization: "YTB", category: "Full", deadline: "2026-02-20", link: "https://www.turkiyeburslari.gov.tr", description: "Туркт магистр, докторт суралцах.",
-    requirements: ["GPA 75%+", "Ages under 30/35", "English/Turkish skill", "National Exam results"],
-    checklist: ["Diploma", "Transcripts", "Intent Letter", "Exam Scores"]
-  },
-  { 
-    title: "CSC Type B Scholarship", country: "China", organization: "University", category: "Full", deadline: "2026-04-15", link: "https://www.campuschina.org", description: "Хятадын их сургуулийн нэрэмжит тэтгэлэг.",
-    requirements: ["Non-Chinese citizen", "Good health", "HSK score (optional)", "Bachelor/Master degree"],
-    checklist: ["CSC Form", "Study Plan", "2 Recommendation Letters", "Medical Form"]
-  },
-  { 
-    title: "HKU Entrance Scholarship", country: "Hong Kong", organization: "HKU", category: "Full", deadline: "2026-01-30", link: "https://admissions.hku.hk", description: "Хонг Конгийн их сургуулийн тэтгэлэг.",
-    requirements: ["Top exam scores (SAT/IB)", "English proficiency", "Interview success", "Admission application"],
-    checklist: ["Personal Statement", "Public Exam Results", "Referee Report", "School Profile"]
-  },
-  { 
-    title: "Nanyang Scholarship", country: "Singapore", organization: "NTU", category: "Full", deadline: "2026-01-15", link: "https://www.ntu.edu.sg", description: "Наняны технологийн сургуулийн тэтгэлэг.",
-    requirements: ["Outstanding results", "Leadership potential", "Co-curricular record", "NTU admission"],
-    checklist: ["Personal Statement", "Appraisal Form", "Passport Photo", "Academic Results"]
-  },
-  { 
-    title: "Khalifa University Research", country: "UAE", organization: "Khalifa", category: "Full", deadline: "2026-04-30", link: "https://www.ku.ac.ae", description: "Арабын эмират улсын судалгааны тэтгэлэг.",
-    requirements: ["STEM Bachelor/Master", "High GPA", "English proficiency", "Research capability"],
-    checklist: ["Transcripts", "CV", "Research Statement", "2 References"]
-  },
-  { 
-    title: "Yenching Academy Fellowship", country: "China", organization: "Peking", category: "Full", deadline: "2025-12-01", link: "https://yenchingacademy.pku.edu.cn", description: "Бээжингийн их сургуулийн Хятад судлал.",
-    requirements: ["Bachelor degree", "Academic excellence", "English proficiency", "Under age 25/28"],
-    checklist: ["Personal Statement", "Research Proposal", "CV", "2 Letters of Recommendation"]
-  },
-  { 
-    title: "Stipendium Hungaricum (Vocational)", country: "Hungary", organization: "TPF", category: "Full", deadline: "2026-01-15", link: "https://stipendiumhungaricum.hu", description: "Унгарт мэргэжлийн боловсрол эзэмших.",
-    requirements: ["HS diploma", "Language skills", "Partner country nomination", "Health clearance"],
-    checklist: ["DreamApply form", "Medical report", "Diploma", "Motivation Letter"]
-  },
-  { 
-    title: "Darmasiswa Scholarship", country: "Indonesia", organization: "Gov", category: "Partial", deadline: "2026-03-01", link: "https://darmasiswa.kemdikbud.go.id", description: "Индонезийн соёл, хэлний тэтгэлэг.",
-    requirements: ["Ages 18-27", "High school graduate", "Interest in culture", "Language ability"],
-    checklist: ["Curriculum Vitae", "Medical Certificate", "Passport", "Language Certificate"]
-  },
-  { 
-    title: "Brunei Darussalam Gov", country: "Brunei", organization: "Gov", category: "Full", deadline: "2026-02-15", link: "https://www.mfa.gov.bn", description: "Брунейн засгийн газрын тэтгэлэг.",
-    requirements: ["Ages 18-25 (Bachelor)", "ASEAN/OIC citizens preferred", "English skill", "Police clearance"],
-    checklist: ["Application Form", "Security Clearance", "Diplomas", "Passport Copy"]
+    title: "AAUW International Fellowships", country: "USA", organization: "AAUW", category: "Full", deadline: "2025-11-15", link: "https://www.aauw.org", 
+    description: "АНУ-д магистр, докторт суралцах эмэгтэйчүүдийн тэтгэлэг.",
+    requirements: ["Non-US citizen woman", "Bachelor degree", "Intent to return home", "Academic excellence"],
+    checklist: ["Proposed Program", "3 Reference Letters", "Transcripts", "Online Application"]
   }
 ];
 

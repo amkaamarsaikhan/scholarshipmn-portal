@@ -16,9 +16,9 @@ interface AuthContextType {
   loading: boolean;
   savedItems: any[];
   toggleSave: (item: any) => void;
-  register: (email: string, password: string) => Promise<void>; // Нэмэгдсэн
-  login: (email: string, password: string) => Promise<void>;    // Нэмэгдсэн
-  logout: () => Promise<void>;                                   // Нэмэгдсэн
+  register: (email: string, password: string) => Promise<void>; 
+  login: (email: string, password: string) => Promise<void>;    
+  logout: () => Promise<void>;                                   
 }
 
 const AuthContext = createContext<AuthContextType>({ 

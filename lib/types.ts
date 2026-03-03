@@ -7,6 +7,6 @@ export interface Scholarship {
   deadline: string;
   link: string;
   description: string;
-  requirements: string[]; // Энэ чухал
-  checklist: string[];    // Энэ чухал
+  requirements: string[]; 
+  checklist: string[];    
 }

@@ -28,7 +28,6 @@ export default function ScholarshipCard({ item }: { item: Scholarship }) {
         toggleSave(item);
     };
 
-    // ШИНЭЧЛЭГДСЭН ЛОГИК: image талбар байхгүй байсан ч ажиллана
     // @ts-ignore - image талбар types дээр байхгүй байсан ч аюулгүй шалгана
     const imageUrl = item.image;
     const hasImage = imageUrl && imageUrl !== "";
@@ -51,7 +50,7 @@ export default function ScholarshipCard({ item }: { item: Scholarship }) {
 
             <Link href={`/scholarships/${item.id}`} className="flex flex-col h-full">
                 {/* Image Section - Зураг байхгүй бол туг харуулна */}
-                <div className="relative h-56 w-full overflow-hidden bg-gradient-to-br from-emerald-50 to-slate-100">
+                <div className="relative h-56 w-full overflow-hidden bg-linear-to-br from-emerald-50 to-slate-100">
                     {hasImage ? (
                         <img
                             src={imageUrl}
@@ -80,7 +79,7 @@ export default function ScholarshipCard({ item }: { item: Scholarship }) {
                 </div>
 
                 {/* Content Section */}
-                <div className="p-8 flex flex-col flex-grow">
+                <div className="p-8 flex flex-col grow">
                     <div className="flex items-center gap-2 text-emerald-600 text-[11px] uppercase tracking-[0.2em] font-black mb-3">
                         <MapPin size={14} strokeWidth={3} />
                         {item.country}
