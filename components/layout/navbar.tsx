@@ -72,21 +72,19 @@ const Navbar = () => {
     };
 
     return (
-        <nav className={`fixed w-full z-50 transition-all duration-500 ${
-                scrolled
+        <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled
                 ? 'bg-white/95 backdrop-blur-md border-b border-emerald-100 py-3 shadow-md'
                 : 'bg-transparent py-6'
             }`}>
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
 
                 {/* LOGO */}
-                <Link href="/" className={`flex items-center text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${
-                    scrolled ? 'text-emerald-950' : 'text-white'
-                }`}>
-                   SCHOLARSHIP
-                   <span className="font-sans not-italic font-black ml-1 text-emerald-500 flex items-center">
+                <Link href="/" className={`flex items-center text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${scrolled ? 'text-emerald-950' : 'text-white'
+                    }`}>
+                    SCHOLARSHIP
+                    <span className="font-sans not-italic font-black ml-1 text-emerald-500 flex items-center">
                         MN <Home size={18} className="ml-1" />
-                   </span>
+                    </span>
                 </Link>
 
                 {/* ЦЭСҮҮД (Зөвхөн нэвтэрсэн хэрэглэгчдэд харагдана) */}
@@ -95,14 +93,12 @@ const Navbar = () => {
                         <>
                             {isAdmin && (
                                 <>
-                                    <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${
-                                        scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
-                                    }`}>
+                                    <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                        }`}>
                                         <PlusCircle size={14} /> Тэтгэлэг нэмэх
                                     </Link>
-                                    <Link href="/admin" className={`flex items-center gap-1.5 transition-colors ${
-                                        scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
-                                    }`}>
+                                    <Link href="/admin" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                        }`}>
                                         <LayoutDashboard size={14} /> Админ Хяналт
                                     </Link>
                                 </>
@@ -119,12 +115,11 @@ const Navbar = () => {
                                 <DropdownMenuTrigger className="focus:outline-none">
                                     <div className="flex items-center gap-3 group">
                                         <div className="flex flex-col items-end leading-none">
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors ${
-                                                scrolled ? 'text-emerald-950' : 'text-white'
-                                            }`}>
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors ${scrolled ? 'text-emerald-950' : 'text-white'
+                                                }`}>
                                                 {user.displayName?.split(' ')[0] || "User"}
                                             </span>
-                                            <span className="text-[9px] text-emerald-500 font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="text-[9px] text-emerald-500 font-black uppercase tracking-tighter">
                                                 {isAdmin ? "Админ Эрх" : "Миний цэс"}
                                             </span>
                                         </div>
@@ -137,7 +132,7 @@ const Navbar = () => {
                                         )}
                                     </div>
                                 </DropdownMenuTrigger>
-                                
+
                                 <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl border-emerald-100 p-2 shadow-xl">
                                     <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-slate-400 p-2">
                                         Миний бүртгэл
@@ -147,7 +142,7 @@ const Navbar = () => {
                                             <Settings size={14} /> Мэдээлэл шинэчлэх
                                         </Link>
                                     </DropdownMenuItem>
-                                    
+
                                     {isAdmin && (
                                         <DropdownMenuItem className="rounded-xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3">
                                             <Link href="/admin" className="flex items-center w-full gap-2 text-xs font-bold uppercase tracking-tight text-emerald-600">
@@ -155,9 +150,9 @@ const Navbar = () => {
                                             </Link>
                                         </DropdownMenuItem>
                                     )}
-                                    
+
                                     <DropdownMenuSeparator className="bg-emerald-50" />
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                         onClick={handleLogout}
                                         className="rounded-xl focus:bg-red-50 focus:text-red-600 cursor-pointer p-3 text-xs font-bold uppercase tracking-tight text-red-500"
                                     >
@@ -169,11 +164,10 @@ const Navbar = () => {
                             <Button
                                 onClick={handleLogin}
                                 variant="outline"
-                                className={`rounded-full border-2 text-[10px] uppercase tracking-widest px-8 h-10 font-black transition-all duration-300 shadow-lg active:scale-95 ${
-                                    scrolled
-                                    ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
-                                    : 'border-white text-white hover:bg-white hover:text-emerald-600'
-                                }`}
+                                className={`rounded-full border-2 text-[10px] uppercase tracking-widest px-8 h-10 font-black transition-all duration-300 shadow-lg active:scale-95 ${scrolled
+                                        ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
+                                        : 'border-white text-white hover:bg-white hover:text-emerald-600'
+                                    }`}
                             >
                                 Нэвтрэх
                             </Button>

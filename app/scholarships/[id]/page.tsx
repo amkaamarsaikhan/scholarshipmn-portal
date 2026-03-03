@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore"; // updateDoc нэмсэн
+import { sendTelegramNotification } from "@/lib/utils"; // Notification нэмсэн
+import { useAuth } from "@/context/AuthContext"; // Хэрэглэгчийг таних
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { 
@@ -20,10 +22,9 @@ import { Badge } from "@/components/ui/badge";
 export default function ScholarshipDetails() {
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useAuth(); // Нэвтэрсэн хэрэглэгч
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Tracker-ийн төлөвийг удирдах
   const [checkedItems, setCheckedItems] = useState<number[]>([]);
 
   useEffect(() => {
@@ -44,16 +45,43 @@ export default function ScholarshipDetails() {
     fetchDoc();
   }, [id]);
 
-  const toggleCheck = (index: number) => {
-    setCheckedItems(prev => 
-      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
-    );
+  // Checklist өөрчлөх ба Мэдэгдэл илгээх логик
+  const toggleCheck = async (index: number) => {
+    const checklist = data?.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
+    
+    const newCheckedItems = checkedItems.includes(index) 
+      ? checkedItems.filter(i => i !== index) 
+      : [...checkedItems, index];
+
+    setCheckedItems(newCheckedItems);
+
+    // Хэрэв бүх зүйл чагтлагдсан бол (Бүрэн дууссан)
+    if (newCheckedItems.length === checklist.length && user) {
+      try {
+        // 1. Firestore-д хэрэглэгчийн статусыг шинэчлэх (Admin Dashboard-д харагдана)
+        await updateDoc(doc(db, "users", user.uid), {
+          status: "completed",
+          lastUpdatedScholarship: data.title,
+          updatedAt: new Date().toISOString()
+        });
+
+        // 2. Telegram руу мэдэгдэл илгээх
+        const message = `✅ <b>CHECKLIST ДУУСЛАА!</b>\n\n` +
+                        `👤 <b>Хэрэглэгч:</b> ${user.displayName || user.email}\n` +
+                        `🎓 <b>Тэтгэлэг:</b> ${data.title}\n` +
+                        `🚀 <b>Төлөв:</b> Бүх материалаа бүрдүүлж дууслаа.`;
+        
+        await sendTelegramNotification(message);
+        console.log("Notification sent!");
+      } catch (error) {
+        console.error("Update error:", error);
+      }
+    }
   };
 
   if (loading) return <div className="pt-32 text-center animate-pulse text-emerald-600 font-bold">Уншиж байна...</div>;
   if (!data) return <div className="pt-32 text-center">Тэтгэлэг олдсонгүй.</div>;
 
-  // Checklist-ийн өгөгдөл (Хэрэв баазад байхгүй бол default утга харуулна)
   const checklist = data.checklist || [
     "OASIS Application",
     "Employer Support Letter",
@@ -65,7 +93,6 @@ export default function ScholarshipDetails() {
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
       <div className="max-w-7xl mx-auto px-6 pt-24">
         
-        {/* Back Button */}
         <button 
           onClick={() => router.back()}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-12 font-medium group"
@@ -75,15 +102,11 @@ export default function ScholarshipDetails() {
         </button>
 
         <div className="flex flex-col lg:flex-row gap-12">
-          
-          {/* LEFT CONTENT */}
           <div className="flex-1">
             <div className="flex flex-col md:flex-row items-start gap-6 mb-10">
-              {/* Logo / Icon Placeholder */}
               <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-emerald-100 uppercase">
                 {data.country?.substring(0, 2)}
               </div>
-              
               <div className="flex-1 space-y-3">
                 <div className="flex flex-wrap gap-2">
                   <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
@@ -97,8 +120,6 @@ export default function ScholarshipDetails() {
                   {data.title}
                 </h1>
               </div>
-
-              {/* Deadline Badge */}
               <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full flex items-center gap-2 text-xs font-black border border-emerald-100">
                 <Clock size={14} />
                 {data.deadline?.toDate ? data.deadline.toDate().toLocaleDateString() : data.deadline}
@@ -112,7 +133,6 @@ export default function ScholarshipDetails() {
               </p>
             </div>
 
-            {/* Requirements Section */}
             <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-sm">
               <h3 className="text-xl font-bold text-slate-900 mb-8">Requirements</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12">
@@ -126,9 +146,7 @@ export default function ScholarshipDetails() {
             </div>
           </div>
 
-          {/* RIGHT SIDEBAR - APPLICATION TRACKER */}
           <div className="w-full lg:w-[400px] space-y-6">
-            
             <div className="bg-[#111827] rounded-[2.5rem] p-8 text-white shadow-2xl shadow-slate-200 sticky top-32">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-xl font-bold">Application Tracker</h3>
@@ -167,8 +185,6 @@ export default function ScholarshipDetails() {
                 </Button>
               </a>
             </div>
-
-            {/* Tip Box */}
             <div className="bg-amber-50 border border-amber-100 rounded-3xl p-6 flex gap-4">
               <div className="text-amber-400">
                 <Lightbulb size={24} fill="currentColor" />
@@ -177,7 +193,6 @@ export default function ScholarshipDetails() {
                 Зөвлөгөө: Өөрийн Personal Statement-ийг дуусах хугацаанаас дор хаяж 2 сарын өмнө бэлдэж эхлээрэй!
               </p>
             </div>
-
           </div>
         </div>
       </div>
