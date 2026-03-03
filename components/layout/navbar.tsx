@@ -24,6 +24,7 @@ const Navbar = () => {
     const { user, loading } = useAuth();
     const router = useRouter();
 
+    // 1. Хэрэглэгчийн эрхийг шалгах
     useEffect(() => {
         const checkRole = async () => {
             if (user) {
@@ -44,15 +45,12 @@ const Navbar = () => {
 
     const isAdmin = role === "admin";
 
+    // 2. Скролл хийх үед дизайн өөрчлөх
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    const handleLogin = () => {
-        router.push("/auth/login");
-    };
 
     const handleLogout = async () => {
         try {
@@ -70,7 +68,7 @@ const Navbar = () => {
             }`}>
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
 
-                {/* LOGO */}
+                {/* --- LOGO --- */}
                 <Link href="/" className={`flex items-center text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${scrolled ? 'text-emerald-950' : 'text-white'
                     }`}>
                     SCHOLARSHIP
@@ -79,18 +77,15 @@ const Navbar = () => {
                     </span>
                 </Link>
 
-                {/* ЦЭСҮҮД (Desktop) */}
+                {/* --- ЦЭСҮҮД (Desktop) --- */}
                 <div className="hidden md:flex items-center space-x-8 text-[11px] uppercase tracking-[0.2em] font-bold">
-                    {/* Хэрэглэгч нэвтэрсэн үед харагдах ил цэсүүд */}
                     {user && (
                         <>
-                            {/* МИНИЙ ПРОФАЙЛ (Одоо ил харагдана) */}
                             <Link href="/profile" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
                                 }`}>
                                 <Bookmark size={14} /> Миний Тэтгэлэг
                             </Link>
 
-                            {/* Админ цэс */}
                             {isAdmin && (
                                 <>
                                     <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
@@ -107,7 +102,7 @@ const Navbar = () => {
                     )}
                 </div>
 
-                {/* БАРУУН ТАЛ */}
+                {/* --- БАРУУН ТАЛ (User Profile / Auth Buttons) --- */}
                 <div className="flex items-center space-x-6">
                     {!loading && (
                         user ? (
@@ -144,7 +139,7 @@ const Navbar = () => {
                                     <DropdownMenuSeparator className="bg-emerald-50 mx-2" />
                                     
                                     <DropdownMenuItem asChild className="rounded-2xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3 transition-colors">
-                                        <Link href="/profile" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest">
+                                        <Link href="/profile" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest text-slate-700">
                                             <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
                                                 <UserCircle size={18} />
                                             </div>
@@ -168,18 +163,32 @@ const Navbar = () => {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         ) : (
-                            <Button
-                                onClick={handleLogin}
-                                variant="outline"
-                                className={`rounded-full border-2 text-[10px] uppercase tracking-[0.2em] px-8 h-12 font-black transition-all duration-300 shadow-xl ${scrolled
-                                        ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
-                                        : 'border-white text-white hover:bg-white hover:text-emerald-600'
+                            /* Нэвтрээгүй үед харагдах хэсэг */
+                            <div className="flex items-center gap-6">
+                                <Link 
+                                    href="/auth/login" 
+                                    className={`text-[10px] uppercase tracking-[0.2em] font-black transition-all hover:opacity-70 ${
+                                        scrolled ? 'text-emerald-950' : 'text-white'
                                     }`}
-                            >
-                                Нэвтрэх
-                            </Button>
+                                >
+                                    Нэвтрэх
+                                </Link>
+
+                                <Button
+                                    onClick={() => router.push("/auth/register")}
+                                    className={`rounded-full px-8 h-11 text-[10px] uppercase tracking-[0.2em] font-black transition-all duration-300 shadow-xl active:scale-95 ${
+                                        scrolled
+                                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200/50'
+                                            : 'bg-white text-emerald-900 hover:bg-emerald-50 shadow-white/10'
+                                    }`}
+                                >
+                                    Бүртгүүлэх
+                                </Button>
+                            </div>
                         )
                     )}
+
+                    {/* Mobile Menu Icon */}
                     <Menu className={`md:hidden w-6 h-6 cursor-pointer ${scrolled ? 'text-emerald-950' : 'text-white'}`} />
                 </div>
             </div>
