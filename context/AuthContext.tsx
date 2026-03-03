@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
   savedItems: any[];
   toggleSave: (item: any) => void;
-  isSaved: (id: string) => boolean; 
+  isSaved: (id: string) => boolean;
   register: (email: string, password: string) => Promise<void>; 
   login: (email: string, password: string) => Promise<void>;    
   logout: () => Promise<void>;                                   

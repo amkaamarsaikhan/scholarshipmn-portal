@@ -7,7 +7,18 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
-export default function ScholarshipCard({ item }: { item: any }) {
+interface ScholarshipCardProps {
+  item: {
+    id: string;
+    title: string;
+    country: string;
+    image?: string;
+    type?: string;
+    deadline?: any;
+  };
+}
+
+export default function ScholarshipCard({ item }: ScholarshipCardProps) {
   const { toggleSave, isSaved } = useAuth();
   const saved = isSaved(item.id);
 
