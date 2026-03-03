@@ -4,7 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import ScholarshipCard from "@/components/scholarships/scholarshipCard";
+
+// dynamic-ийг болиод шууд импортлов. Ингэснээр TypeScript алдаа гаргахгүй.
+import ScholarshipCard from "@/components/scholarships/scholarshipCard"; 
+
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
 

@@ -1,5 +1,4 @@
 "use client";
-
 import React from 'react';
 import { motion } from "framer-motion";
 import { MapPin, Calendar, ArrowRight, Bookmark } from "lucide-react";
@@ -7,15 +6,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
+// Төрлийг энд хатуу зааж өгснөөр IntrinsicAttributes алдаа гарахгүй
 interface ScholarshipCardProps {
-  item: {
-    id: string;
-    title: string;
-    country: string;
-    image?: string;
-    type?: string;
-    deadline?: any;
-  };
+  item: any;
 }
 
 export default function ScholarshipCard({ item }: ScholarshipCardProps) {
