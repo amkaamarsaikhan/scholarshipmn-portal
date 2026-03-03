@@ -1,8 +1,6 @@
 "use client";
-
 // Энэ хэсэг Vercel дээрх кэшийг устгаж, үргэлж шинэ кодыг уншуулна
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 import { db } from "@/lib/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
