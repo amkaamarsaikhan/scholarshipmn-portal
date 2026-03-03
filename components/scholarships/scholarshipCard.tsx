@@ -80,18 +80,19 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
                         toggleSave(item);
                     }}
                     className={`
-    absolute top-6 right-6 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 z-20 shadow-lg
-    ${saved
-                            ? "bg-emerald-500 text-white shadow-emerald-500/40"
-                            : "bg-white/90 text-slate-900 hover:bg-white hover:scale-110 shadow-black/10 backdrop-blur-sm"
+                     absolute top-6 right-6 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 z-30
+                      shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-2
+                       ${saved
+                            ? "bg-emerald-600 border-emerald-600 text-white"
+                            : "bg-white border-white text-emerald-600 hover:scale-110 active:scale-95"
                         }
   `}
                 >
                     <Bookmark
-                        size={22}
-                        className="transition-transform duration-300"
+                        size={24}
+                        className="transition-all duration-300"
                         fill={saved ? "currentColor" : "none"}
-                        strokeWidth={saved ? 0 : 2.5}
+                        strokeWidth={2.5} // Хүрээг нь бүр бүдүүн болгов
                     />
                 </button>
 

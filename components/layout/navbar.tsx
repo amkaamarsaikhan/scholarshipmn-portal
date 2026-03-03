@@ -115,7 +115,7 @@ const Navbar = () => {
                                 <DropdownMenuTrigger className="focus:outline-none">
                                     <div className="flex items-center gap-3 group">
                                         <div className="flex flex-col items-end leading-none">
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors ${scrolled ? 'text-emerald-950' : 'text-white'
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors ${scrolled ? 'text-emerald-950' : 'bg-emerald-200'
                                                 }`}>
                                                 {user.displayName?.split(' ')[0] || "User"}
                                             </span>
