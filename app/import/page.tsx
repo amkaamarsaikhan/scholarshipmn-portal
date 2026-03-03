@@ -1,6 +1,4 @@
 "use client";
-// Энэ хэсэг Vercel дээрх кэшийг устгаж, үргэлж шинэ кодыг уншуулна
-export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
@@ -262,15 +260,16 @@ export default function ImportPage() {
     const [progress, setProgress] = useState(0);
     const [isImporting, setIsImporting] = useState(false);
 
-    // Хөтөчийн кэшийг хүчээр цэвэрлэхэд туслах Log
+    // Render-ийн алдаанаас сэргийлж, Client дээр ажиллаж буйг баталгаажуулах
+    const [isMounted, setIsMounted] = useState(false);
     useEffect(() => {
-        console.log("Import Page Loaded with", scholarshipsData.length, "items");
+        setIsMounted(true);
     }, []);
 
     const startImport = async () => {
-        if (isImporting) return; 
+        if (isImporting) return;
         
-        const confirmAction = confirm(`Та ${scholarshipsData.length} тэтгэлэг оруулахдаа итгэлтэй байна уу? (Хуучин датагаа Firebase-ээс устгасан байх ёстой)`);
+        const confirmAction = confirm(`Та ${scholarshipsData.length} тэтгэлэг оруулах уу?`);
         if (!confirmAction) return;
 
         setIsImporting(true);
@@ -279,7 +278,6 @@ export default function ImportPage() {
 
         try {
             const colRef = collection(db, "scholarships");
-            
             for (const item of scholarshipsData) {
                 await addDoc(colRef, {
                     ...item,
@@ -291,77 +289,41 @@ export default function ImportPage() {
             }
             setStatus(`Амжилттай! ${count} тэтгэлэг баазад орлоо.`);
         } catch (err) {
-            console.error("Import error:", err);
-            setStatus("Алдаа гарлаа. Firestore Rules эсвэл Консолоо шалгана уу.");
+            console.error(err);
+            setStatus("Алдаа гарлаа.");
         } finally {
             setIsImporting(false);
         }
     };
 
+    if (!isMounted) return null; // Server-side prerender хийх үед хоосон буцаана
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] text-white p-6">
             <div className="bg-[#1e293b] p-10 rounded-[2.5rem] shadow-2xl border border-white/5 w-full max-w-lg text-center relative overflow-hidden">
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl" />
-                
                 <div className="relative z-10">
                     <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
                         <Database className="text-emerald-400" size={40} />
                     </div>
-
-                    <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase">
-                        Data Seeder v2
-                    </h1>
-                    <p className="text-slate-400 text-sm mb-1 font-medium">
-                        Firestore-руу өгөгдөл хуулах
-                    </p>
-                    <p className="text-emerald-500 text-[10px] font-bold uppercase mb-10 tracking-[0.2em]">
-                        {scholarshipsData.length} Тэтгэлэг бэлэн байна
-                    </p>
+                    <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase">Data Seeder v2</h1>
+                    <p className="text-slate-400 text-sm mb-10 font-medium">Firestore-руу {scholarshipsData.length} өгөгдөл хуулах</p>
 
                     <div className="space-y-4 mb-10 text-left">
-                        <div className="flex justify-between items-end px-1">
-                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Явц</span>
-                            <span className="text-xl font-mono font-black text-emerald-400">{progress}%</span>
-                        </div>
-                        <div className="w-full bg-slate-800 rounded-full h-3 p-1">
-                            <div 
-                                className="bg-emerald-500 h-full rounded-full transition-all duration-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" 
-                                style={{ width: `${progress}%` }}
-                            />
+                        <div className="w-full bg-slate-800 rounded-full h-3">
+                            <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
                         </div>
                     </div>
 
                     <button
                         onClick={startImport}
                         disabled={isImporting}
-                        className={`w-full h-16 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${
-                            isImporting 
-                            ? "bg-slate-700 text-slate-400 cursor-not-allowed" 
-                            : "bg-white text-black hover:bg-emerald-400 active:scale-95 shadow-xl shadow-white/5"
-                        }`}
+                        className="w-full h-16 rounded-2xl font-black bg-white text-black hover:bg-emerald-400 transition-all"
                     >
-                        {isImporting ? (
-                            <>
-                                <RotateCcw className="animate-spin" size={18} />
-                                Хуулж байна...
-                            </>
-                        ) : (
-                            "Өгөгдлийг хуулах"
-                        )}
+                        {isImporting ? "Хуулж байна..." : "Өгөгдлийг хуулах"}
                     </button>
-
-                    <div className={`mt-8 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-tight ${
-                        status.includes('Амжилттай') ? 'text-emerald-400' : 'text-slate-500'
-                    }`}>
-                        {status.includes('Амжилттай') ? <CheckCircle2 size={14} /> : status.includes('Алдаа') ? <AlertCircle size={14} /> : null}
-                        {status}
-                    </div>
+                    <div className="mt-8 text-xs font-bold text-slate-500">{status}</div>
                 </div>
             </div>
-
-            <p className="mt-8 text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em]">
-                Secure Database Management System v2.1
-            </p>
         </div>
     );
 }
