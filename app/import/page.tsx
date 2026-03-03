@@ -1,7 +1,12 @@
 "use client";
+
+// Энэ хэсэг Vercel дээрх кэшийг устгаж, үргэлж шинэ кодыг уншуулна
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { db } from "@/lib/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // useEffect нэмэв
 import { Database, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
 
 const scholarshipsData = [
@@ -259,9 +264,17 @@ export default function ImportPage() {
     const [progress, setProgress] = useState(0);
     const [isImporting, setIsImporting] = useState(false);
 
+    // Хөтөчийн кэшийг хүчээр цэвэрлэхэд туслах Log
+    useEffect(() => {
+        console.log("Import Page Loaded with", scholarshipsData.length, "items");
+    }, []);
+
     const startImport = async () => {
-        if (isImporting) return; // Процесс явж байвал дахин ажиллуулахгүй
+        if (isImporting) return; 
         
+        const confirmAction = confirm(`Та ${scholarshipsData.length} тэтгэлэг оруулахдаа итгэлтэй байна уу? (Хуучин датагаа Firebase-ээс устгасан байх ёстой)`);
+        if (!confirmAction) return;
+
         setIsImporting(true);
         setStatus("Импорт эхэллээ...");
         let count = 0;
@@ -278,10 +291,10 @@ export default function ImportPage() {
                 count++;
                 setProgress(Math.round((count / scholarshipsData.length) * 100));
             }
-            setStatus("Амжилттай! тэтгэлэг баазад орлоо.");
+            setStatus(`Амжилттай! ${count} тэтгэлэг баазад орлоо.`);
         } catch (err) {
             console.error("Import error:", err);
-            setStatus("Алдаа гарлаа. Firestore Rules-ээ шалгана уу.");
+            setStatus("Алдаа гарлаа. Firestore Rules эсвэл Консолоо шалгана уу.");
         } finally {
             setIsImporting(false);
         }
@@ -290,7 +303,6 @@ export default function ImportPage() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] text-white p-6">
             <div className="bg-[#1e293b] p-10 rounded-[2.5rem] shadow-2xl border border-white/5 w-full max-w-lg text-center relative overflow-hidden">
-                {/* Background Decor */}
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl" />
                 
                 <div className="relative z-10">
@@ -299,13 +311,15 @@ export default function ImportPage() {
                     </div>
 
                     <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase">
-                        Data Seeder
+                        Data Seeder v2
                     </h1>
-                    <p className="text-slate-400 text-sm mb-10 font-medium">
-                        Firestore-руу тэтгэлгийн өгөгдөл хуулах
+                    <p className="text-slate-400 text-sm mb-1 font-medium">
+                        Firestore-руу өгөгдөл хуулах
+                    </p>
+                    <p className="text-emerald-500 text-[10px] font-bold uppercase mb-10 tracking-[0.2em]">
+                        {scholarshipsData.length} Тэтгэлэг бэлэн байна
                     </p>
 
-                    {/* Progress UI */}
                     <div className="space-y-4 mb-10 text-left">
                         <div className="flex justify-between items-end px-1">
                             <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Явц</span>
@@ -347,9 +361,8 @@ export default function ImportPage() {
                 </div>
             </div>
 
-            {/* Hint */}
             <p className="mt-8 text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em]">
-                Secure Database Management System v2.0
+                Secure Database Management System v2.1
             </p>
         </div>
     );
