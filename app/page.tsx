@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Search, LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
-// dynamic import ашиглан TypeScript-ийн IntrinsicAttributes алдаанаас сэргийлнэ
 import dynamic from 'next/dynamic';
+
+// TypeScript-ийн IntrinsicAttributes алдааг бүрмөсөн арилгах заалт
 const ScholarshipCard = dynamic(() => import("@/components/scholarships/scholarshipCard"), { 
   ssr: true 
-}) as any;
+}) as React.ComponentType<any>;
 
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
@@ -171,7 +171,6 @@ export default function Home() {
           ) : filteredScholarships.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredScholarships.map((item: any) => (
-                /* @ts-ignore: Force ignore IntrinsicAttributes error for build */
                 <ScholarshipCard key={item.id} item={item} />
               ))}
             </div>
