@@ -1,19 +1,23 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 export const sendTelegramNotification = async (message: string) => {
   const token = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
   const chatId = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID;
   
   if (!token || !chatId) {
-    console.error("Telegram credentials are missing in env!");
+    console.error("Telegram credentials are missing in Environment Variables!");
     return;
   }
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
   try {
-    await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -22,7 +26,12 @@ export const sendTelegramNotification = async (message: string) => {
         parse_mode: "HTML",
       }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Telegram API Error:", errorData);
+    }
   } catch (error) {
-    console.error("Telegram Error:", error);
+    console.error("Telegram Fetch Error:", error);
   }
 };
