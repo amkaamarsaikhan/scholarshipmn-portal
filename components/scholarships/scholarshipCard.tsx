@@ -53,7 +53,7 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group bg-white rounded-[2.5rem] border border-emerald-100 overflow-hidden hover:shadow-2xl hover:shadow-emerald-900/5 transition-all duration-500 flex flex-col h-full"
+      className="group bg-white rounded-[2.5rem] border border-emerald-500 overflow-hidden hover:shadow-2xl hover:shadow-emerald-900/5 transition-all duration-500 flex flex-col h-full"
     >
       {/* --- Image Section --- */}
       <div className="relative h-64 overflow-hidden bg-emerald-50 flex items-center justify-center">

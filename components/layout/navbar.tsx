@@ -79,7 +79,7 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
 
                 {/* LOGO */}
-                <Link href="/" className={`flex items-center text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${scrolled ? 'text-emerald-950' : 'text-white'
+                <Link href="/" className={`flex items-center  text-emerald-200 text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${scrolled ? 'text-emerald-950' : 'text-white'
                     }`}>
                     SCHOLARSHIP
                     <span className="font-sans not-italic font-black ml-1 text-emerald-500 flex items-center">
