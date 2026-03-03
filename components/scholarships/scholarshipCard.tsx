@@ -9,14 +9,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
   ExternalLink, 
-  Clock, 
-  Globe2, 
-  GraduationCap, 
-  Lightbulb, 
   CheckCircle2 
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 export default function ScholarshipDetails() {
   const { id } = useParams();
@@ -44,28 +39,26 @@ export default function ScholarshipDetails() {
     fetchDoc();
   }, [id]);
 
-  // Checklist чагтлах ба Мэдэгдэл илгээх үндсэн функц
   const toggleCheck = async (index: number) => {
     const checklistItems = data?.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
     
-    // 1. Сонгосон item-ыг нэмэх эсвэл хасах
-    const newCheckedItems = checkedItems.includes(index) 
+    // 1. Шинэ төлөвийг тодорхойлох (State update sync)
+    const isAlreadyChecked = checkedItems.includes(index);
+    const newCheckedItems = isAlreadyChecked 
       ? checkedItems.filter(i => i !== index) 
       : [...checkedItems, index];
 
     setCheckedItems(newCheckedItems);
 
-    // 2. Хэрэв БҮХ item чагтлагдсан бол (Fully Checked)
+    // 2. Хэрэв БҮХ item чагтлагдсан бол Telegram руу мэдэгдэх
     if (newCheckedItems.length === checklistItems.length && user) {
       try {
-        // Firestore дээр хэрэглэгчийн статусыг 'completed' болгох
         await updateDoc(doc(db, "users", user.uid), {
           status: "completed",
-          lastUpdatedScholarship: data.title,
+          lastCompletedScholarship: data.title,
           updatedAt: new Date().toISOString()
         });
 
-        // Telegram мэдэгдэл бэлдэх
         const message = `✅ <b>CHECKLIST БҮРЭН ДУУСЛАА!</b>\n\n` +
                         `👤 <b>Хэрэглэгч:</b> ${user.displayName || user.email}\n` +
                         `🎓 <b>Тэтгэлэг:</b> ${data.title}\n` +
@@ -81,12 +74,7 @@ export default function ScholarshipDetails() {
   if (loading) return <div className="pt-32 text-center animate-pulse text-emerald-600 font-bold">Уншиж байна...</div>;
   if (!data) return <div className="pt-32 text-center">Тэтгэлэг олдсонгүй.</div>;
 
-  const checklist = data.checklist || [
-    "OASIS Application",
-    "Employer Support Letter",
-    "Relevance Statement",
-    "Transcripts"
-  ];
+  const checklist = data.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
@@ -100,26 +88,24 @@ export default function ScholarshipDetails() {
         </button>
 
         <div className="flex flex-col lg:flex-row gap-12">
-          {/* Зүүн тал: Тэтгэлгийн мэдээлэл */}
           <div className="flex-1">
-             {/* ... (Тэтгэлгийн гарчиг, тайлбар хэсэг хэвээрээ) ... */}
              <div className="flex flex-col md:flex-row items-start gap-6 mb-10">
                 <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-lg uppercase">
-                  {data.country?.substring(0, 2)}
+                  {data.country ? data.country.substring(0, 2) : "🌎"}
                 </div>
                 <div className="flex-1 space-y-3">
                   <h1 className="text-4xl font-black text-slate-900">{data.title}</h1>
+                  <p className="text-emerald-600 font-bold uppercase tracking-widest">{data.country}</p>
                 </div>
              </div>
-             <p className="text-slate-500 italic mb-10">"{data.description}"</p>
+             <p className="text-slate-600 text-lg leading-relaxed mb-10">{data.description}</p>
           </div>
 
-          {/* Баруун тал: Application Tracker */}
           <div className="w-full lg:w-[400px]">
             <div className="bg-[#111827] rounded-[2.5rem] p-8 text-white shadow-2xl sticky top-32">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-xl font-bold">Application Tracker</h3>
-                <span className="text-[10px] bg-emerald-500/20 px-2 py-1 rounded-md text-emerald-400 font-black">
+                <span className="text-xs bg-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-black">
                   {checkedItems.length} / {checklist.length}
                 </span>
               </div>
@@ -135,12 +121,12 @@ export default function ScholarshipDetails() {
                         : 'bg-white/5 border-transparent hover:bg-white/10'
                     }`}
                   >
-                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${
                       checkedItems.includes(index) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600'
                     }`}>
                       {checkedItems.includes(index) && <CheckCircle2 size={14} className="text-white" />}
                     </div>
-                    <span className={`font-medium ${checkedItems.includes(index) ? 'text-emerald-400' : 'text-slate-300'}`}>
+                    <span className={`font-medium transition-colors ${checkedItems.includes(index) ? 'text-emerald-400' : 'text-slate-300'}`}>
                       {item}
                     </span>
                   </div>
@@ -148,7 +134,7 @@ export default function ScholarshipDetails() {
               </div>
 
               <a href={data.link} target="_blank" rel="noopener noreferrer">
-                <Button className="w-full h-16 bg-[#00E676] hover:bg-[#00C853] text-slate-900 font-black rounded-2xl">
+                <Button className="w-full h-16 bg-[#00E676] hover:bg-[#00C853] text-slate-900 font-black rounded-2xl transition-all transform active:scale-95 shadow-xl shadow-emerald-500/20">
                   Visit Official Website <ExternalLink size={20} className="ml-2" />
                 </Button>
               </a>

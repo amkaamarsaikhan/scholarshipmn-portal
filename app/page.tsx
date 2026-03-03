@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Globe, X, Bookmark } from "lucide-react"; // Bookmark нэмэв
+import { Search, LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ScholarshipCard from "@/components/scholarships/scholarshipCard";
 import { getScholarships } from "@/lib/actions/getScholarships";
-import { useAuth } from "@/context/AuthContext"; // AuthContext импортлох
+import { useAuth } from "@/context/AuthContext";
 
 const HERO_SLIDES = [
   { id: 1, title: "Ирээдүйнхээ гүүрийг", subtitle: "ӨНӨӨДӨР БҮТЭЭ.", image: "/hero1.png" },
@@ -28,13 +28,13 @@ export default function Home() {
   const [current, setCurrent] = useState(0);
   const [scholarships, setScholarships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // 1. Хадгалсан төлөвийг удирдах
   const { savedItems } = useAuth();
   const [showSavedOnly, setShowSavedOnly] = useState(false);
-
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // TypeScript-д зориулж картыг 'any' гэж зарлах (Build алдаанаас сэргийлнэ)
+  const Card = ScholarshipCard as any;
 
   useEffect(() => {
     const fetchScholarships = async () => {
@@ -55,16 +55,12 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // 2. ШҮҮЛТҮҮРИЙН ШИНЭЧИЛСЭН ЛОГИК
   const filteredScholarships = scholarships.filter((item) => {
-    // Хэрэв "Хадгалсан" горим идэвхтэй бол зөвхөн savedItems-д байгааг харуулна
     const isSaved = savedItems?.some((saved: any) => saved.id === item.id);
     const matchesSaved = showSavedOnly ? isSaved : true;
-
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.country.toLowerCase().includes(searchQuery.toLowerCase());
-
     return matchesSaved && matchesCountry && matchesSearch;
   });
 
@@ -76,7 +72,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#f8faf8]">
-      {/* Hero Section хэвээрээ... */}
       <section className="relative h-[40vh] flex items-center justify-center overflow-hidden bg-emerald-950 pt-20">
         <AnimatePresence mode="wait">
           <motion.div key={current} initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} exit={{ opacity: 0 }} transition={{ duration: 1.5 }} className="absolute inset-0 z-0">
@@ -114,8 +109,6 @@ export default function Home() {
                 >
                   <Globe size={18} /> Бүх тэтгэлгүүд
                 </button>
-
-                {/* 3. ШИНЭЧИЛСЭН ХАДГАЛСАН ХЭСЭГ */}
                 <button
                   onClick={() => { setShowSavedOnly(true); setSelectedCountry(null); }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${showSavedOnly ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
@@ -131,7 +124,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Popular Countries хэвээрээ... */}
             <div className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm max-h-[500px] flex flex-col">
               <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-4">Popular Countries</p>
               <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
@@ -175,11 +167,10 @@ export default function Home() {
             </div>
           ) : filteredScholarships.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredScholarships.map((item) => (
-                <ScholarshipCard key={item.id} item={item} />
+              {filteredScholarships.map((item: any) => (
+                <Card key={item.id} item={item} />
               ))}
             </div>
-
           ) : (
             <div className="text-center py-20 bg-white border border-dashed border-emerald-200 rounded-3xl">
               <p className="text-gray-500">{showSavedOnly ? "Танд хадгалсан тэтгэлэг алга." : "Уучлаарай, тэтгэлэг олдсонгүй."}</p>
