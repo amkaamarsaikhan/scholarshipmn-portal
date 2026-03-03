@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
+import { Analytics } from "@vercel/analytics/next"; // 1. Импорт нэмэгдсэн
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,8 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Dashboard-ийн үндсэн бүтэц */}
           <div className="flex min-h-screen">
 
-
-            {/* 2. Баруун талын үндсэн агуулга */}
+            {/* Баруун талын үндсэн агуулга */}
             <div className="flex-1 flex flex-col min-w-0">
               
               {/* Дээд талын Navbar (Search & Profile) */}
@@ -41,10 +41,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <main className="flex-1">
                 {children}
               </main>
-<Footer />
+
+              <Footer />
             </div>
           </div>
         </AuthProvider>
+
+        {/* 2. Vercel Analytics-ийг энд байрлуулна */}
+        <Analytics /> 
       </body>
     </html>
   );
