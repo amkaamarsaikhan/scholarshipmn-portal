@@ -7,7 +7,25 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
-// Таны getScholarships-д ашиглаж байгаа интерфэйс
+const COUNTRY_FLAGS: { [key: string]: string } = {
+  "Australia": "🇦🇺",
+  "Canada": "🇨🇦",
+  "China": "🇨🇳",
+  "France": "🇫🇷",
+  "Germany": "🇩🇪",
+  "Japan": "🇯🇵",
+  "South Korea": "🇰🇷",
+  "UK": "🇬🇧",
+  "USA": "🇺🇸",
+  "Global": "🌎",
+  "Hungary": "🇭🇺",
+  "Turkey": "🇹🇷",
+  "Italy": "🇮🇹",
+  "Taiwan": "🇹🇼",
+  "Netherlands": "🇳🇱",
+  "Australia ": "🇦🇺", 
+};
+
 export interface Scholarship {
   id: string;
   title: string;
@@ -24,6 +42,9 @@ interface Props {
 const ScholarshipCard: React.FC<Props> = ({ item }) => {
   const { toggleSave, isSaved } = useAuth();
   const saved = isSaved(item.id);
+
+  // Улсын нэрээр далбааг олох, олдохгүй бол дэлхийн бөмбөрцөг харуулах
+  const flag = COUNTRY_FLAGS[item.country.trim()] || "🌎";
 
   return (
     <motion.div
@@ -52,12 +73,14 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
           <Bookmark size={20} fill={saved ? "currentColor" : "none"} />
         </button>
 
-        {/* Floating Badges */}
+        {/* Floating Badges & Title */}
         <div className="absolute bottom-6 left-6 right-6">
           <div className="flex items-center gap-2 mb-3">
             <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
               {item.type || "Full Fund"}
             </span>
+            {/* Энд далбааг харуулж байна */}
+            <span className="text-xl drop-shadow-md">{flag}</span>
           </div>
           <h3 className="text-xl font-bold text-white leading-tight group-hover:text-emerald-400 transition-colors">
             {item.title}
@@ -72,7 +95,8 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
             <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
               <MapPin size={16} className="text-emerald-600" />
             </div>
-            <span className="text-sm font-medium">{item.country}</span>
+            {/* Далбаа болон Улсын нэрийг хамт харуулах */}
+            <span className="text-sm font-medium">{flag} {item.country}</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
