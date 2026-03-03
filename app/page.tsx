@@ -4,7 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Search, LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import ScholarshipCard from "@/components/scholarships/scholarshipCard";
+
+// 1. ИМПОРТЫГ ИНГЭЖ ӨӨРЧИЛ (Төрлийн алдаанаас 100% сэргийлнэ)
+import dynamic from 'next/dynamic';
+const ScholarshipCard = dynamic(() => import("@/components/scholarships/scholarshipCard"), { 
+  ssr: true 
+}) as any;
+
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
 
@@ -32,9 +38,6 @@ export default function Home() {
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // TypeScript-д зориулж картыг 'any' гэж зарлах (Build алдаанаас сэргийлнэ)
-  const Card = ScholarshipCard as any;
 
   useEffect(() => {
     const fetchScholarships = async () => {
@@ -168,7 +171,7 @@ export default function Home() {
           ) : filteredScholarships.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredScholarships.map((item: any) => (
-                <Card key={item.id} item={item} />
+                <ScholarshipCard key={item.id} item={item} />
               ))}
             </div>
           ) : (
