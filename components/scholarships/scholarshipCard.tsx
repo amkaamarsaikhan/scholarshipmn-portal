@@ -1,125 +1,161 @@
 "use client";
 
+import React, { useState, useEffect } from 'react';
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore"; 
+import { sendTelegramNotification } from "@/lib/utils"; 
+import { useAuth } from "@/context/AuthContext"; 
+import { useParams, useRouter } from 'next/navigation';
+import { 
+  ArrowLeft, 
+  ExternalLink, 
+  Clock, 
+  Globe2, 
+  GraduationCap, 
+  Lightbulb, 
+  CheckCircle2 
+} from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, GraduationCap, Bookmark, ChevronRight, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-import DeadlineTimer from "./DeadlineTimer"; 
-import { Scholarship } from "@/lib/types";
 
-const COUNTRY_FLAGS: Record<string, string> = {
-  "Australia": "🇦🇺", "Belgium": "🇧🇪", "Brunei": "🇧🇳", "Canada": "🇨🇦",
-  "China": "🇨🇳", "EU": "🇪🇺", "France": "🇫🇷", "Germany": "🇩🇪",
-  "Global": "🌎", "Hong Kong": "🇭🇰", "Hungary": "🇭🇺", "Indonesia": "🇮🇩",
-  "Italy": "🇮🇹", "Japan": "🇯🇵", "Netherlands": "🇳🇱", "New Zealand": "🇳🇿",
-  "Singapore": "🇸🇬", "South Korea": "🇰🇷", "Sweden": "🇸🇪", "Switzerland": "🇨🇭",
-  "Taiwan": "🇹🇼", "Turkey": "🇹🇷", "UAE": "🇦🇪", "UK": "🇬🇧", "USA": "🇺🇸"
-};
+export default function ScholarshipDetails() {
+  const { id } = useParams();
+  const router = useRouter();
+  const { user } = useAuth(); 
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [checkedItems, setCheckedItems] = useState<number[]>([]);
 
-export default function ScholarshipCard({ item }: { item: Scholarship }) {
-    const { toggleSave, savedItems } = useAuth();
-    
-    // Хадгалагдсан эсэхийг шалгах
-    const isSaved = savedItems?.some((saved: Scholarship) => saved.id === item.id) || false;
-
-    const handleToggleSave = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleSave(item);
+  useEffect(() => {
+    const fetchDoc = async () => {
+      if (!id) return;
+      try {
+        const docRef = doc(db, "scholarships", id as string);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setData(docSnap.data());
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchDoc();
+  }, [id]);
 
-    // @ts-ignore - image талбар types дээр байхгүй байсан ч аюулгүй шалгана
-    const imageUrl = item.image;
-    const hasImage = imageUrl && imageUrl !== "";
-    const flag = COUNTRY_FLAGS[item.country] || "🌎";
+  // Checklist чагтлах ба Мэдэгдэл илгээх үндсэн функц
+  const toggleCheck = async (index: number) => {
+    const checklistItems = data?.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
+    
+    // 1. Сонгосон item-ыг нэмэх эсвэл хасах
+    const newCheckedItems = checkedItems.includes(index) 
+      ? checkedItems.filter(i => i !== index) 
+      : [...checkedItems, index];
 
-    return (
-        <div className="group relative bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 flex flex-col h-full overflow-hidden">
-            
-            {/* 1. Хадгалах товчлуур */}
-            <button 
-                onClick={handleToggleSave}
-                className={`absolute top-6 right-6 z-20 p-3 rounded-2xl transition-all active:scale-90 ${
-                    isSaved 
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' 
-                    : 'bg-white/80 backdrop-blur-md text-slate-400 hover:text-emerald-500 shadow-sm'
-                }`}
-            >
-                <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
-            </button>
+    setCheckedItems(newCheckedItems);
 
-            <Link href={`/scholarships/${item.id}`} className="flex flex-col h-full">
-                {/* Image Section - Зураг байхгүй бол туг харуулна */}
-                <div className="relative h-56 w-full overflow-hidden bg-linear-to-br from-emerald-50 to-slate-100">
-                    {hasImage ? (
-                        <img
-                            src={imageUrl}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-full">
-                            <span className="text-8xl group-hover:scale-110 transition-transform duration-500 select-none drop-shadow-2xl">
-                                {flag}
-                            </span>
-                        </div>
-                    )}
-                    
-                    <div className="absolute top-6 left-6">
-                        <Badge className="bg-emerald-500 text-white border-none text-[10px] font-black uppercase tracking-[0.15em] px-4 py-1.5 rounded-xl shadow-lg shadow-emerald-500/20">
-                            {item.category || "Full"}
-                        </Badge>
-                    </div>
+    // 2. Хэрэв БҮХ item чагтлагдсан бол (Fully Checked)
+    if (newCheckedItems.length === checklistItems.length && user) {
+      try {
+        // Firestore дээр хэрэглэгчийн статусыг 'completed' болгох
+        await updateDoc(doc(db, "users", user.uid), {
+          status: "completed",
+          lastUpdatedScholarship: data.title,
+          updatedAt: new Date().toISOString()
+        });
 
-                    <div className="absolute bottom-4 right-4 left-4">
-                        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-3 border border-white/50 shadow-xl">
-                            <DeadlineTimer deadline={item.deadline} />
-                        </div>
-                    </div>
+        // Telegram мэдэгдэл бэлдэх
+        const message = `✅ <b>CHECKLIST БҮРЭН ДУУСЛАА!</b>\n\n` +
+                        `👤 <b>Хэрэглэгч:</b> ${user.displayName || user.email}\n` +
+                        `🎓 <b>Тэтгэлэг:</b> ${data.title}\n` +
+                        `📝 <b>Явц:</b> ${newCheckedItems.length}/${checklistItems.length} (100%)`;
+        
+        await sendTelegramNotification(message);
+      } catch (error) {
+        console.error("Update or Notification error:", error);
+      }
+    }
+  };
+
+  if (loading) return <div className="pt-32 text-center animate-pulse text-emerald-600 font-bold">Уншиж байна...</div>;
+  if (!data) return <div className="pt-32 text-center">Тэтгэлэг олдсонгүй.</div>;
+
+  const checklist = data.checklist || [
+    "OASIS Application",
+    "Employer Support Letter",
+    "Relevance Statement",
+    "Transcripts"
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] pb-20">
+      <div className="max-w-7xl mx-auto px-6 pt-24">
+        <button 
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-12 font-medium group"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          Буцах
+        </button>
+
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Зүүн тал: Тэтгэлгийн мэдээлэл */}
+          <div className="flex-1">
+             {/* ... (Тэтгэлгийн гарчиг, тайлбар хэсэг хэвээрээ) ... */}
+             <div className="flex flex-col md:flex-row items-start gap-6 mb-10">
+                <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-lg uppercase">
+                  {data.country?.substring(0, 2)}
                 </div>
-
-                {/* Content Section */}
-                <div className="p-8 flex flex-col grow">
-                    <div className="flex items-center gap-2 text-emerald-600 text-[11px] uppercase tracking-[0.2em] font-black mb-3">
-                        <MapPin size={14} strokeWidth={3} />
-                        {item.country}
-                    </div>
-
-                    <h3 className="text-2xl font-black text-slate-800 mb-3 group-hover:text-emerald-600 transition-colors leading-[1.2] line-clamp-2">
-                        {item.title}
-                    </h3>
-
-                    <p className="text-slate-500 text-[13px] line-clamp-2 mb-6 italic leading-relaxed">
-                        "{item.description}"
-                    </p>
-
-                    {/* Requirements Tags */}
-                    {item.requirements && item.requirements.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            {item.requirements.slice(0, 2).map((req, idx) => (
-                                <div key={idx} className="flex items-center gap-1.5 bg-slate-50 text-slate-600 py-1.5 px-3 rounded-lg text-[10px] font-bold border border-slate-100">
-                                    <CheckCircle2 size={12} className="text-emerald-500" />
-                                    {req}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    <div className="mt-auto pt-6 border-t border-slate-50 space-y-4">
-                        <div className="flex items-center gap-3 text-slate-600 font-bold text-sm">
-                            <div className="p-2 bg-emerald-50 rounded-lg text-emerald-500">
-                                <GraduationCap size={18} />
-                            </div>
-                            <span className="truncate">{item.organization}</span>
-                        </div>
-
-                        <div className="flex items-center justify-center gap-2 w-full py-4 bg-slate-50 text-slate-700 font-black text-xs uppercase tracking-widest rounded-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                            Дэлгэрэнгүй үзэх
-                            <ChevronRight size={18} />
-                        </div>
-                    </div>
+                <div className="flex-1 space-y-3">
+                  <h1 className="text-4xl font-black text-slate-900">{data.title}</h1>
                 </div>
-            </Link>
+             </div>
+             <p className="text-slate-500 italic mb-10">"{data.description}"</p>
+          </div>
+
+          {/* Баруун тал: Application Tracker */}
+          <div className="w-full lg:w-[400px]">
+            <div className="bg-[#111827] rounded-[2.5rem] p-8 text-white shadow-2xl sticky top-32">
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-xl font-bold">Application Tracker</h3>
+                <span className="text-[10px] bg-emerald-500/20 px-2 py-1 rounded-md text-emerald-400 font-black">
+                  {checkedItems.length} / {checklist.length}
+                </span>
+              </div>
+
+              <div className="space-y-3 mb-10">
+                {checklist.map((item: string, index: number) => (
+                  <div 
+                    key={index} 
+                    onClick={() => toggleCheck(index)}
+                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${
+                      checkedItems.includes(index) 
+                        ? 'bg-emerald-500/10 border-emerald-500/50' 
+                        : 'bg-white/5 border-transparent hover:bg-white/10'
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${
+                      checkedItems.includes(index) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600'
+                    }`}>
+                      {checkedItems.includes(index) && <CheckCircle2 size={14} className="text-white" />}
+                    </div>
+                    <span className={`font-medium ${checkedItems.includes(index) ? 'text-emerald-400' : 'text-slate-300'}`}>
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <a href={data.link} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full h-16 bg-[#00E676] hover:bg-[#00C853] text-slate-900 font-black rounded-2xl">
+                  Visit Official Website <ExternalLink size={20} className="ml-2" />
+                </Button>
+              </a>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
