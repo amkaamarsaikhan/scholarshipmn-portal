@@ -7,23 +7,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
+// Далбааны жагсаалт
 const COUNTRY_FLAGS: { [key: string]: string } = {
-  "Australia": "🇦🇺",
-  "Canada": "🇨🇦",
-  "China": "🇨🇳",
-  "France": "🇫🇷",
-  "Germany": "🇩🇪",
-  "Japan": "🇯🇵",
-  "South Korea": "🇰🇷",
-  "UK": "🇬🇧",
-  "USA": "🇺🇸",
-  "Global": "🌎",
-  "Hungary": "🇭🇺",
-  "Turkey": "🇹🇷",
-  "Italy": "🇮🇹",
-  "Taiwan": "🇹🇼",
-  "Netherlands": "🇳🇱",
-  "Australia ": "🇦🇺", 
+  "Australia": "🇦🇺", "Canada": "🇨🇦", "China": "🇨🇳", "France": "🇫🇷",
+  "Germany": "🇩🇪", "Japan": "🇯🇵", "South Korea": "🇰🇷", "UK": "🇬🇧",
+  "USA": "🇺🇸", "Global": "🌎", "Hungary": "🇭🇺", "Turkey": "🇹🇷",
+  "Italy": "🇮🇹", "Taiwan": "🇹🇼", "Netherlands": "🇳🇱"
 };
 
 export interface Scholarship {
@@ -35,15 +24,11 @@ export interface Scholarship {
   deadline?: string;
 }
 
-interface Props {
-  item: Scholarship;
-}
+interface Props { item: Scholarship; }
 
 const ScholarshipCard: React.FC<Props> = ({ item }) => {
   const { toggleSave, isSaved } = useAuth();
   const saved = isSaved(item.id);
-
-  // Улсын нэрээр далбааг олох, олдохгүй бол дэлхийн бөмбөрцөг харуулах
   const flag = COUNTRY_FLAGS[item.country.trim()] || "🌎";
 
   return (
@@ -54,20 +39,26 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
       className="group bg-white rounded-[2.5rem] border border-emerald-100 overflow-hidden hover:shadow-2xl hover:shadow-emerald-900/5 transition-all duration-500 flex flex-col h-full"
     >
       {/* Image Section */}
-      <div className="relative h-64 overflow-hidden">
-        <img
-          src={item.image || "/api/placeholder/400/320"}
-          alt={item.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+      <div className="relative h-64 overflow-hidden bg-emerald-50 flex items-center justify-center">
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        ) : (
+          /* Хэрэв зураг байхгүй бол улсын далбааг том харуулах */
+          <div className="text-[120px] transition-transform duration-700 group-hover:scale-125 select-none">
+            {flag}
+          </div>
+        )}
+        
+        {/* Overlay - Зураг дээрх бичиг харагдахын тулд */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60" />
         
         {/* Save Button */}
         <button 
-          onClick={(e) => {
-            e.preventDefault();
-            toggleSave(item);
-          }}
+          onClick={(e) => { e.preventDefault(); toggleSave(item); }}
           className="absolute top-6 right-6 w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white hover:text-emerald-600 transition-all duration-300 z-10"
         >
           <Bookmark size={20} fill={saved ? "currentColor" : "none"} />
@@ -79,7 +70,6 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
             <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
               {item.type || "Full Fund"}
             </span>
-            {/* Энд далбааг харуулж байна */}
             <span className="text-xl drop-shadow-md">{flag}</span>
           </div>
           <h3 className="text-xl font-bold text-white leading-tight group-hover:text-emerald-400 transition-colors">
@@ -95,7 +85,6 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
             <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
               <MapPin size={16} className="text-emerald-600" />
             </div>
-            {/* Далбаа болон Улсын нэрийг хамт харуулах */}
             <span className="text-sm font-medium">{flag} {item.country}</span>
           </div>
           <div className="flex items-center gap-3">
@@ -106,7 +95,6 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
           </div>
         </div>
 
-        {/* Action Button */}
         <Link href={`/scholarships/${item.id}`} className="block mt-auto">
           <Button className="w-full h-14 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border-none rounded-2xl font-bold transition-all duration-300 group/btn">
             Дэлгэрэнгүй харах
