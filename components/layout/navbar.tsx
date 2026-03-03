@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Menu, User as UserIcon, PlusCircle, Home, LayoutDashboard, Settings } from 'lucide-react';
+import { Menu, User as UserIcon, PlusCircle, Home, LayoutDashboard, Settings, UserCircle, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import {
     DropdownMenu,
@@ -51,15 +51,8 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const handleLogin = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-            // Нэвтэрсний дараа нүүр хуудас руу шилжүүлэх
-            router.push("/");
-        } catch (error: any) {
-            console.error("Login Error:", error);
-        }
+    const handleLogin = () => {
+        router.push("/auth/login");
     };
 
     const handleLogout = async () => {
@@ -79,7 +72,7 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
 
                 {/* LOGO */}
-                <Link href="/" className={`flex items-center  text-emerald-200 text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${scrolled ? 'text-emerald-950' : 'text-white'
+                <Link href="/" className={`flex items-center text-2xl font-serif italic tracking-tighter transition-colors duration-300 ${scrolled ? 'text-emerald-950' : 'text-white'
                     }`}>
                     SCHOLARSHIP
                     <span className="font-sans not-italic font-black ml-1 text-emerald-500 flex items-center">
@@ -87,27 +80,23 @@ const Navbar = () => {
                     </span>
                 </Link>
 
-                {/* ЦЭСҮҮД (Зөвхөн нэвтэрсэн хэрэглэгчдэд харагдана) */}
+                {/* ЦЭСҮҮД (Desktop - Admin бол харагдана) */}
                 <div className="hidden md:flex items-center space-x-8 text-[11px] uppercase tracking-[0.2em] font-bold">
-                    {user && (
+                    {user && isAdmin && (
                         <>
-                            {isAdmin && (
-                                <>
-                                    <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
-                                        }`}>
-                                        <PlusCircle size={14} /> Тэтгэлэг нэмэх
-                                    </Link>
-                                    <Link href="/admin" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
-                                        }`}>
-                                        <LayoutDashboard size={14} /> Админ Хяналт
-                                    </Link>
-                                </>
-                            )}
+                            <Link href="/admin/add" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                }`}>
+                                <PlusCircle size={14} /> Тэтгэлэг нэмэх
+                            </Link>
+                            <Link href="/admin" className={`flex items-center gap-1.5 transition-colors ${scrolled ? 'text-emerald-900 hover:text-emerald-500' : 'text-emerald-50 hover:text-white'
+                                }`}>
+                                <LayoutDashboard size={14} /> Админ Хяналт
+                            </Link>
                         </>
                     )}
                 </div>
 
-                {/* БАРУУН ТАЛ */}
+                {/* БАРУУН ТАЛ (User Profile & Login) */}
                 <div className="flex items-center space-x-6">
                     {!loading && (
                         user ? (
@@ -115,7 +104,7 @@ const Navbar = () => {
                                 <DropdownMenuTrigger className="focus:outline-none">
                                     <div className="flex items-center gap-3 group">
                                         <div className="flex flex-col items-end leading-none">
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors ${scrolled ? 'text-emerald-950' : 'bg-emerald-200'
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 transition-colors ${scrolled ? 'text-emerald-950' : 'text-white'
                                                 }`}>
                                                 {user.displayName?.split(' ')[0] || "User"}
                                             </span>
@@ -123,40 +112,72 @@ const Navbar = () => {
                                                 {isAdmin ? "Админ Эрх" : "Миний цэс"}
                                             </span>
                                         </div>
-                                        {user.photoURL ? (
-                                            <img src={user.photoURL} alt="Profile" className="w-9 h-9 rounded-full border-2 border-emerald-500 object-cover shadow-sm transition-transform active:scale-90" />
-                                        ) : (
-                                            <div className="bg-emerald-500 p-2 rounded-full text-white">
-                                                <UserIcon size={18} />
-                                            </div>
-                                        )}
+                                        <div className="relative">
+                                            {user.photoURL ? (
+                                                <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-2xl border-2 border-emerald-500 object-cover shadow-sm transition-transform group-hover:scale-105 active:scale-95" />
+                                            ) : (
+                                                <div className="bg-emerald-500 p-2.5 rounded-2xl text-white shadow-lg shadow-emerald-200 transition-transform group-hover:scale-105">
+                                                    <UserIcon size={20} />
+                                                </div>
+                                            )}
+                                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+                                        </div>
                                     </div>
                                 </DropdownMenuTrigger>
 
-                                <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl border-emerald-100 p-2 shadow-xl">
-                                    <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-slate-400 p-2">
-                                        Миний бүртгэл
+                                <DropdownMenuContent align="end" className="w-64 mt-4 rounded-[2rem] border-emerald-50 p-3 shadow-2xl shadow-emerald-900/10 bg-white">
+                                    <DropdownMenuLabel className="p-4">
+                                        <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Тавтай морил</p>
+                                        <p className="text-sm font-black text-slate-800 truncate">{user.email}</p>
                                     </DropdownMenuLabel>
-                                    <DropdownMenuItem className="rounded-xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3">
-                                        <Link href="/complete-profile" className="flex items-center w-full gap-2 text-xs font-bold uppercase tracking-tight">
-                                            <Settings size={14} /> Мэдээлэл шинэчлэх
+                                    
+                                    <DropdownMenuSeparator className="bg-emerald-50 mx-2" />
+                                    
+                                    {/* МИНИЙ ПРОФАЙЛ */}
+                                    <DropdownMenuItem asChild className="rounded-2xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3 transition-colors">
+                                        <Link href="/profile" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest">
+                                            <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                                <UserCircle size={18} />
+                                            </div>
+                                            Миний Профайл
+                                        </Link>
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuItem asChild className="rounded-2xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3 transition-colors">
+                                        <Link href="/complete-profile" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest">
+                                            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                                                <Settings size={18} />
+                                            </div>
+                                            Тохиргоо
                                         </Link>
                                     </DropdownMenuItem>
 
                                     {isAdmin && (
-                                        <DropdownMenuItem className="rounded-xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3">
-                                            <Link href="/admin" className="flex items-center w-full gap-2 text-xs font-bold uppercase tracking-tight text-emerald-600">
-                                                <LayoutDashboard size={14} /> Хэрэглэгчдийн жагсаалт
-                                            </Link>
-                                        </DropdownMenuItem>
+                                        <>
+                                            <DropdownMenuSeparator className="bg-emerald-50 mx-2" />
+                                            <DropdownMenuItem asChild className="rounded-2xl focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer p-3 transition-colors">
+                                                <Link href="/admin" className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest text-emerald-600">
+                                                    <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
+                                                        <LayoutDashboard size={18} />
+                                                    </div>
+                                                    Админ Панел
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </>
                                     )}
 
-                                    <DropdownMenuSeparator className="bg-emerald-50" />
+                                    <DropdownMenuSeparator className="bg-emerald-50 mx-2" />
+                                    
                                     <DropdownMenuItem
                                         onClick={handleLogout}
-                                        className="rounded-xl focus:bg-red-50 focus:text-red-600 cursor-pointer p-3 text-xs font-bold uppercase tracking-tight text-red-500"
+                                        className="rounded-2xl focus:bg-red-50 focus:text-red-600 cursor-pointer p-3 transition-colors text-red-500"
                                     >
-                                        Гарах
+                                        <div className="flex items-center w-full gap-3 text-[11px] font-black uppercase tracking-widest">
+                                            <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center">
+                                                <LogOut size={18} />
+                                            </div>
+                                            Гарах
+                                        </div>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -164,9 +185,9 @@ const Navbar = () => {
                             <Button
                                 onClick={handleLogin}
                                 variant="outline"
-                                className={`rounded-full border-2 text-[10px] uppercase tracking-widest px-8 h-10 font-black transition-all duration-300 shadow-lg active:scale-95 ${scrolled
-                                        ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
-                                        : 'border-white text-white hover:bg-white hover:text-emerald-600'
+                                className={`rounded-full border-2 text-[10px] uppercase tracking-[0.2em] px-8 h-12 font-black transition-all duration-300 shadow-xl active:scale-95 ${scrolled
+                                        ? 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-emerald-200/50'
+                                        : 'border-white text-white hover:bg-white hover:text-emerald-600 shadow-white/10'
                                     }`}
                             >
                                 Нэвтрэх
