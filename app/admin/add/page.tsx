@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { sendTelegramNotification } from "@/lib/utils"; // utils-ээс функцээ дуудах
 
 export default function AddScholarshipPage() {
   const router = useRouter();
@@ -18,22 +19,45 @@ export default function AddScholarshipPage() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<ScholarshipFormValues>({
     resolver: zodResolver(scholarshipSchema),
   });
 
   const onSubmit = async (data: ScholarshipFormValues) => {
     setLoading(true);
+    
+    // 1. Firestore-д тэтгэлгийг нэмэх
     const result = await addScholarship(data);
-    setLoading(false);
 
     if (result.success) {
-      alert("Тэтгэлэг амжилттай нэмэгдлээ!");
-      router.push("/"); // Нүүр хуудас руу шилжих
+      // 2. Амжилттай болбол Телеграм руу мэдэгдэл илгээх
+      const telegramMessage = `
+📢 <b>ШИНЭ ТЭТГЭЛЭГ ЗАРЛАГДЛАА!</b>
+
+🎓 <b>Нэр:</b> ${data.title}
+📍 <b>Улс:</b> ${data.country}
+🏢 <b>Байгууллага:</b> ${data.organization || "Тодорхойгүй"}
+📅 <b>Дуусах хугацаа:</b> ${data.deadline}
+
+🔗 <a href="${data.link || 'https://scholarshipmn.academy'}">Дэлгэрэнгүйг эндээс үзэх</a>
+      `;
+
+      try {
+        await sendTelegramNotification(telegramMessage);
+      } catch (err) {
+        console.error("Telegram мэдэгдэл илгээхэд алдаа гарлаа:", err);
+      }
+
+      alert("Тэтгэлэг амжилттай нэмэгдэж, Телеграм мэдэгдэл илгээгдлээ!");
+      reset(); // Формыг цэвэрлэх
       router.refresh();
+      router.push("/"); 
     } else {
       alert(result.error);
     }
+    
+    setLoading(false);
   };
 
   return (
@@ -92,7 +116,7 @@ export default function AddScholarshipPage() {
           disabled={loading}
           className="w-full bg-emerald-950 hover:bg-emerald-800 text-white rounded-none py-6 uppercase tracking-[0.2em] font-bold text-xs transition-all"
         >
-          {loading ? "Түр хүлээнэ үү..." : "Тэтгэлгийг нийтлэх"}
+          {loading ? "Түр хүлээнэ үү..." : "Тэтгэлгийг нийтлэх ба Мэдэгдэх"}
         </Button>
       </form>
     </div>
