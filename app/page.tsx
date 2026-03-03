@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Search, LayoutGrid, Globe, X, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-// 1. Импортыг илүү аюулгүй болгох
+// dynamic import ашиглан TypeScript-ийн IntrinsicAttributes алдаанаас сэргийлнэ
 import dynamic from 'next/dynamic';
 const ScholarshipCard = dynamic(() => import("@/components/scholarships/scholarshipCard"), { 
   ssr: true 
