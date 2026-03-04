@@ -1,18 +1,14 @@
-"use server";
-
-export const sendTelegramNotification = async (message: string) => {
+export async function sendTelegramNotification(message: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
-  
+
   if (!token || !chatId) {
-    console.error("Telegram credentials are missing!");
-    return;
+    throw new Error("Telegram credentials missing");
   }
 
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-
-  try {
-    const response = await fetch(url, {
+  const response = await fetch(
+    `https://api.telegram.org/bot${token}/sendMessage`,
+    {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -20,13 +16,10 @@ export const sendTelegramNotification = async (message: string) => {
         text: message,
         parse_mode: "HTML",
       }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Telegram API Error:", errorData);
     }
-  } catch (error) {
-    console.error("Telegram Fetch Error:", error);
+  );
+
+  if (!response.ok) {
+    throw new Error("Telegram API error");
   }
-};
+}

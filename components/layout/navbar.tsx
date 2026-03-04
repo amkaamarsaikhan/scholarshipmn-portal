@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import {

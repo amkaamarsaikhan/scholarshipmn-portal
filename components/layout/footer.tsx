@@ -6,6 +6,7 @@ import { Facebook, Instagram, Twitter, Mail, MapPin, Phone, ArrowUpRight, CheckC
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { sendTelegramNotification } from '@/lib/telegram';
+import { cn } from "@/lib/utils";
 
 const Footer = () => {
     const [email, setEmail] = useState("");

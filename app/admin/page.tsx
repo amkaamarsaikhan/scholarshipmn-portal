@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
-import { sendTelegramNotification } from "@/lib/utils"; 
+import { sendTelegramNotification } from "@/lib/telegram"; 
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,

@@ -6,7 +6,7 @@ import { MapPin, ArrowRight, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-// DeadlineTimer-ийг импортлох (Замаа шалгаарай: ./deadlineTimer)
+import { cn } from "@/lib/utils";
 import DeadlineTimer from "./DeadlineTimer";
 
 // Улсын далбааны жагсаалт
