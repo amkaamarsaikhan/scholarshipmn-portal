@@ -7,7 +7,7 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  deleteUser // Нэмэгдсэн
+  deleteUser
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { 
@@ -16,39 +16,39 @@ import {
   serverTimestamp, 
   getDoc, 
   updateDoc, 
-  deleteDoc, // Нэмэгдсэн
+  deleteDoc, 
   arrayUnion, 
   arrayRemove,
+  onSnapshot,
   collection,
   query,
   where,
-  getDocs
+  documentId
 } from 'firebase/firestore';
 import { sendTelegramNotification } from '@/lib/utils';
 
-// 1. Interface-д бүх функцээ зарлах (TypeScript-ийн алдааг засна)
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   savedItems: any[];
-  toggleSave: (item: any) => void;
+  toggleSave: (item: any) => Promise<void>;
   isSaved: (id: string) => boolean;
   register: (email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  deleteAccount: () => Promise<void>; // <--- Нэмэгдсэн
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null, 
   loading: true, 
   savedItems: [],
-  toggleSave: () => {}, 
+  toggleSave: async () => {}, 
   isSaved: () => false,
   register: async () => {}, 
   login: async () => {}, 
   logout: async () => {},
-  deleteAccount: async () => {}, // <--- Нэмэгдсэн
+  deleteAccount: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -58,28 +58,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isSaved = (id: string) => savedItems.some(i => i.id === id);
 
-  // --- 1. Firestore-оос хадгалсан тэтгэлгүүдийг татах логик ---
-  const fetchSavedScholarships = async (u: User) => {
-    try {
-      const userDoc = await getDoc(doc(db, "users", u.uid));
-      if (userDoc.exists()) {
-        const savedIds = userDoc.data().savedScholarships || [];
-        
-        if (savedIds.length > 0) {
-          const sQuery = query(collection(db, "scholarships"), where("__name__", "in", savedIds));
-          const sSnap = await getDocs(sQuery);
-          const sList = sSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setSavedItems(sList);
-        } else {
-          setSavedItems([]);
-        }
+  // --- Real-time тэтгэлэг татах логик ---
+  useEffect(() => {
+    let unsubscribeUser: () => void;
+    
+    const authUnsubscribe = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      
+      if (u) {
+        // Хэрэглэгчийн баримтыг Real-time сонсох
+        unsubscribeUser = onSnapshot(doc(db, "users", u.uid), async (userDoc) => {
+          if (userDoc.exists()) {
+            const savedIds = userDoc.data().savedScholarships || [];
+            
+            if (savedIds.length > 0) {
+              // ID-нуудаар тэтгэлгийн мэдээллийг татах
+              const sQuery = query(collection(db, "scholarships"), where(documentId(), "in", savedIds));
+              const sSnap = await getDocs(sQuery); // query дотор snapshot ашиглаж болно, гэвч энэ хэсэгт хялбарчилсан
+              const sList = sSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setSavedItems(sList);
+            } else {
+              setSavedItems([]);
+            }
+          }
+        });
+      } else {
+        setSavedItems([]);
       }
-    } catch (error) {
-      console.error("Error fetching saved items:", error);
-    }
-  };
+      setLoading(false);
+    });
 
-  // --- 2. Хадгалах/Устгах логик (Firestore + Telegram) ---
+    return () => {
+      authUnsubscribe();
+      if (unsubscribeUser) unsubscribeUser();
+    };
+  }, []);
+
   const toggleSave = async (item: any) => {
     if (!user) return alert("Нэвтэрсний дараа хадгалах боломжтой!");
 
@@ -88,12 +102,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       if (alreadySaved) {
-        setSavedItems(prev => prev.filter(i => i.id !== item.id));
         await updateDoc(userRef, { 
           savedScholarships: arrayRemove(item.id) 
         });
       } else {
-        setSavedItems(prev => [...prev, item]);
         await updateDoc(userRef, { 
           savedScholarships: arrayUnion(item.id),
           lastUpdatedScholarship: item.title 
@@ -106,66 +118,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // --- 3. Бүртгэл устгах функц (Auth + Firestore + Telegram) ---
   const deleteAccount = async () => {
     if (!user) return;
-
-    const confirmDelete = confirm("Та бүртгэлээ бүрэн устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.");
+    const confirmDelete = confirm("Та бүртгэлээ бүрэн устгахдаа итгэлтэй байна уу?");
     if (!confirmDelete) return;
 
     try {
       const userEmail = user.email;
       const userUid = user.uid;
-
-      // Firestore-оос устгах
+      
+      // 1. Хэрэглэгчийн бүх явцыг (progress) устгах логик энд нэмэгдэж болно
       await deleteDoc(doc(db, "users", userUid));
-
-      // Auth-аас устгах
       await deleteUser(user);
+      await sendTelegramNotification(`🗑️ <b>БҮРТГЭЛ УСТЛАА</b>\n\n📧 Email: ${userEmail}`);
 
-      // Telegram мэдэгдэл
-      await sendTelegramNotification(`🗑️ <b>БҮРТГЭЛ УСТЛАА</b>\n\n📧 Email: ${userEmail}\nСистемээс бүрэн хасагдлаа.`);
-
-      alert("Таны бүртгэл амжилттай устлаа.");
+      alert("Амжилттай устлаа.");
       window.location.href = "/";
     } catch (error: any) {
-      console.error("Delete account error:", error);
       if (error.code === "auth/requires-recent-login") {
-        alert("Аюулгүй байдлын үүднээс та дахин нэвтэрсний дараа бүртгэлээ устгах боломжтой.");
+        alert("Дахин нэвтэрсний дараа устгах боломжтой.");
         await signOut(auth);
-      } else {
-        alert("Алдаа гарлаа. Дахин оролдоно уу.");
       }
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        await fetchSavedScholarships(u);
-      } else {
-        setSavedItems([]);
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   const register = async (email: string, password: string) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
-    const newUser = res.user;
-
-    await setDoc(doc(db, "users", newUser.uid), {
-      uid: newUser.uid,
-      email: newUser.email,
+    await setDoc(doc(db, "users", res.user.uid), {
+      uid: res.user.uid,
+      email: res.user.email,
       displayName: email.split('@')[0],
       status: "not-started",
       savedScholarships: [],
       createdAt: serverTimestamp()
     });
-
-    await sendTelegramNotification(`👤 <b>ШИНЭ ХЭРЭГЛЭГЧ!</b>\n\n📧 Email: ${email}\n🎉 Платформд нэгдлээ.`);
+    await sendTelegramNotification(`👤 <b>ШИНЭ ХЭРЭГЛЭГЧ!</b>\n\n📧 Email: ${email}`);
   };
 
   const login = (e: string, p: string) => signInWithEmailAndPassword(auth, e, p).then(() => {});
@@ -181,3 +168,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+import { getDocs } from 'firebase/firestore'; // Дутуу байсныг нэмэв
