@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { sendTelegramNotification } from "@/lib/telegram"; // Салгаж үүсгэсэн файлаас импортлоно
+import { sendTelegramNotification } from "@/lib/telegram"; 
 import { useAuth } from "@/context/AuthContext";
 import { useParams, useRouter } from 'next/navigation';
 import { 
@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-export default function ScholarshipDetails() {
+export default function ScholarshipDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -45,7 +45,9 @@ export default function ScholarshipDetails() {
   }, [id]);
 
   const toggleCheck = async (index: number) => {
-    const checklistItems = data?.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
+    if (!data) return;
+    
+    const checklistItems = data.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
     
     const newCheckedItems = checkedItems.includes(index) 
       ? checkedItems.filter(i => i !== index) 
@@ -53,17 +55,14 @@ export default function ScholarshipDetails() {
 
     setCheckedItems(newCheckedItems);
 
-    // Хэрэв БҮХ зүйл чагтлагдсан бол (Checklist бүрэн дуусах үед)
-    if (newCheckedItems.length === checklistItems.length && user) {
+    if (newCheckedItems.length === checklistItems.length && user && data) {
       try {
-        // 1. Firestore-д хэрэглэгчийн статусыг шинэчлэх
         await updateDoc(doc(db, "users", user.uid), {
           status: "completed",
-          lastUpdatedScholarship: data.title,
+          lastUpdatedScholarship: data.title || "Unknown",
           updatedAt: new Date().toISOString()
         });
 
-        // 2. Telegram руу мэдэгдэл илгээх
         const tgMessage = `✅ <b>CHECKLIST ДУУСЛАА!</b>\n\n` +
                           `👤 <b>Хэрэглэгч:</b> ${user.displayName || user.email}\n` +
                           `🎓 <b>Тэтгэлэг:</b> ${data.title}\n` +
@@ -71,7 +70,6 @@ export default function ScholarshipDetails() {
         
         await sendTelegramNotification(tgMessage);
 
-        // 3. Админ руу Имэйл илгээх (Zoho-оор дамжуулж)
         await fetch('/api/admin-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -81,8 +79,6 @@ export default function ScholarshipDetails() {
             scholarshipTitle: data.title
           }),
         });
-
-        console.log("Telegram and Email notifications sent successfully!");
       } catch (error) {
         console.error("Notification process failed:", error);
       }
@@ -102,7 +98,6 @@ export default function ScholarshipDetails() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
       <div className="max-w-7xl mx-auto px-6 pt-24">
-        
         <button 
           onClick={() => router.back()}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-12 font-medium group"
@@ -112,7 +107,6 @@ export default function ScholarshipDetails() {
         </button>
 
         <div className="flex flex-col lg:flex-row gap-12">
-          {/* Зүүн тал: Мэдээлэл */}
           <div className="flex-1">
             <div className="flex flex-col md:flex-row items-start gap-6 mb-10">
               <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-emerald-100 uppercase">
@@ -120,10 +114,10 @@ export default function ScholarshipDetails() {
               </div>
               <div className="flex-1 space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center shadow-sm">
+                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
                     <Globe2 size={12} /> {data.country}
                   </Badge>
-                  <Badge className="bg-blue-50 text-blue-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center shadow-sm">
+                  <Badge className="bg-blue-50 text-blue-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
                     <GraduationCap size={12} /> {data.level || data.category}
                   </Badge>
                 </div>
@@ -133,7 +127,7 @@ export default function ScholarshipDetails() {
               </div>
               <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full flex items-center gap-2 text-xs font-black border border-emerald-100">
                 <Clock size={14} />
-                {data.deadline?.toDate ? data.deadline.toDate().toLocaleDateString() : data.deadline}
+                {data.deadline?.toDate ? data.deadline.toDate().toLocaleDateString() : String(data.deadline || "Хугацаагүй")}
               </div>
             </div>
 
@@ -144,7 +138,7 @@ export default function ScholarshipDetails() {
               </p>
             </div>
 
-            <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-sm">
               <h3 className="text-xl font-bold text-slate-900 mb-8">Requirements</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12">
                 {data.requirements?.map((req: string, index: number) => (
@@ -152,17 +146,16 @@ export default function ScholarshipDetails() {
                     <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                     <span className="text-slate-600 font-medium">{req}</span>
                   </div>
-                )) || <p className="text-slate-400 italic">Мэдээлэл байхгүй</p>}
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Баруун тал: Tracker */}
           <div className="w-full lg:w-[400px] space-y-6">
-            <div className="bg-[#111827] rounded-[2.5rem] p-8 text-white shadow-2xl shadow-slate-200 sticky top-32">
+            <div className="bg-[#111827] rounded-[2.5rem] p-8 text-white shadow-2xl sticky top-32">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-xl font-bold">Application Tracker</h3>
-                <span className="text-[10px] bg-white/10 px-2 py-1 rounded-md text-emerald-400 font-black tracking-widest uppercase">
+                <span className="text-[10px] bg-white/10 px-2 py-1 rounded-md text-emerald-400 font-black">
                   {checkedItems.length} / {currentChecklist.length}
                 </span>
               </div>
@@ -178,12 +171,12 @@ export default function ScholarshipDetails() {
                         : 'bg-white/5 border-transparent hover:bg-white/10'
                     }`}
                   >
-                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
-                      checkedItems.includes(index) ? 'bg-emerald-500 border-emerald-500 scale-110' : 'border-slate-600'
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${
+                      checkedItems.includes(index) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600'
                     }`}>
                       {checkedItems.includes(index) && <CheckCircle2 size={14} className="text-white" />}
                     </div>
-                    <span className={`font-medium transition-colors ${checkedItems.includes(index) ? 'text-emerald-400 line-through opacity-70' : 'text-slate-300'}`}>
+                    <span className={`font-medium ${checkedItems.includes(index) ? 'text-emerald-400' : 'text-slate-300'}`}>
                       {item}
                     </span>
                   </div>
@@ -191,20 +184,11 @@ export default function ScholarshipDetails() {
               </div>
 
               <a href={data.link} target="_blank" rel="noopener noreferrer">
-                <Button className="w-full h-16 bg-[#00E676] hover:bg-[#00C853] text-slate-900 font-black text-lg rounded-2xl flex gap-2 transition-transform active:scale-95 shadow-xl shadow-[#00E676]/20">
+                <Button className="w-full h-16 bg-[#00E676] hover:bg-[#00C853] text-slate-900 font-black text-lg rounded-2xl flex gap-2">
                   Visit Official Website
                   <ExternalLink size={20} />
                 </Button>
               </a>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-100 rounded-3xl p-6 flex gap-4">
-              <div className="text-amber-400 shrink-0">
-                <Lightbulb size={24} fill="currentColor" />
-              </div>
-              <p className="text-amber-900/70 text-sm font-bold leading-relaxed italic">
-                Зөвлөгөө: Өөрийн Personal Statement-ийг дуусах хугацаанаас дор хаяж 2 сарын өмнө бэлдэж эхлээрэй!
-              </p>
             </div>
           </div>
         </div>
