@@ -14,7 +14,6 @@ import {
 } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
 
 const Form = FormProvider
 
@@ -90,25 +89,28 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
 function FormLabel({
   className,
   ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+}: React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>) {
   const { error, formItemId } = useFormField()
 
   return (
-    <Label
+    <LabelPrimitive.Root
       data-slot="form-label"
       data-error={!!error}
-      className={cn("data-[error=true]:text-destructive", className)}
+      className={cn(
+        "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 data-[error=true]:text-destructive",
+        className
+      )}
       htmlFor={formItemId}
       {...props}
     />
   )
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot.Root>) {
+function FormControl({ ...props }: React.ComponentPropsWithoutRef<typeof Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
   return (
-    <Slot.Root
+    <Slot
       data-slot="form-control"
       id={formItemId}
       aria-describedby={
