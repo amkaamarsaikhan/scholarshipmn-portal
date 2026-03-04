@@ -10,13 +10,12 @@ export async function addScholarship(formData: any) {
       title: formData.title,
       country: formData.country,
       organization: formData.organization,
-      deadline: new Date(formData.deadline), // Огноог Timestamp болгож хадгалах нь зөв
+      deadline: new Date(formData.deadline), 
       description: formData.description,
       link: formData.link,
       createdAt: serverTimestamp(),
     });
 
-    // Дата нэмэгдсэн тул хуудсыг шинэчилж мэдээллийг дахин татах
     revalidatePath("/"); 
     return { success: true };
   } catch (error) {
