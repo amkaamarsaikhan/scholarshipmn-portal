@@ -25,7 +25,7 @@ import {
   where,
   documentId
 } from 'firebase/firestore';
-import { sendTelegramNotification } from '@/lib/utils';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 interface AuthContextType {
   user: User | null;
