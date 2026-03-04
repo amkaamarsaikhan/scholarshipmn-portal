@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { sendTelegramNotification } from "@/lib/telegram";
+import { cn } from "@/lib/utils";
 import { PlusCircle, Globe, Calendar, Building2, Link as LinkIcon, FileText } from "lucide-react";
 
 export default function AddScholarshipPage() {
