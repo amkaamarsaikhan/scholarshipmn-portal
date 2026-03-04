@@ -27,9 +27,12 @@ export default function AddScholarshipPage() {
 
   const onSubmit = async (data: ScholarshipFormValues) => {
     setLoading(true);
+    
+    // 1. Firestore-д тэтгэлгийг хадгалах
     const result = await addScholarship(data);
 
     if (result.success) {
+      // 2. Telegram мэдэгдэл бэлдэх
       const telegramMessage = `
 📢 <b>ШИНЭ ТЭТГЭЛЭГ ЗАРЛАГДЛАА!</b>
 
@@ -42,12 +45,28 @@ export default function AddScholarshipPage() {
       `;
 
       try {
+        // 3. Telegram бот руу явуулах
         await sendTelegramNotification(telegramMessage);
+
+        // 4. Subscriber-ууд руу Имэйл мэдэгдэл илгээх (Манай үүсгэсэн API)
+        await fetch('/api/send-newsletter', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: data.title,
+            description: data.description,
+            link: data.link || 'https://scholarshipmn.academy',
+            country: data.country
+          }),
+        });
+
       } catch (err) {
-        console.error("Telegram error:", err);
+        console.error("Notification error:", err);
       }
 
-      alert("Амжилттай нийтлэгдлээ!");
+      alert("Амжилттай нийтлэгдэж, бүх хэрэглэгчдэд имэйл илгээгдлээ!");
       reset();
       router.refresh();
       router.push("/"); 
@@ -60,7 +79,6 @@ export default function AddScholarshipPage() {
   return (
     <div className="min-h-screen bg-[#fcfdfc] py-24 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Header Section */}
         <div className="mb-12 text-center space-y-3">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 mb-4">
             <PlusCircle size={32} />
@@ -69,13 +87,11 @@ export default function AddScholarshipPage() {
           <p className="text-emerald-600 font-medium tracking-[0.15em] uppercase text-xs">Админ удирдлагын хэсэг</p>
         </div>
 
-        {/* Form Section */}
         <form 
           onSubmit={handleSubmit(onSubmit)} 
           className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-emerald-100 shadow-2xl shadow-emerald-900/5 space-y-8"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Тэтгэлгийн нэр */}
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
                 <FileText size={14} className="text-emerald-500" /> Тэтгэлгийн нэр
@@ -88,7 +104,6 @@ export default function AddScholarshipPage() {
               {errors.title && <p className="text-red-500 text-[11px] font-medium ml-2">{errors.title.message}</p>}
             </div>
 
-            {/* Улс */}
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
                 <Globe size={14} className="text-emerald-500" /> Улс
@@ -103,7 +118,6 @@ export default function AddScholarshipPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Байгууллага */}
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
                 <Building2 size={14} className="text-emerald-500" /> Байгууллага
@@ -115,7 +129,6 @@ export default function AddScholarshipPage() {
               />
             </div>
 
-            {/* Дуусах хугацаа */}
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
                 <Calendar size={14} className="text-emerald-500" /> Дуусах хугацаа
@@ -129,7 +142,6 @@ export default function AddScholarshipPage() {
             </div>
           </div>
 
-          {/* Тайлбар */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
               <FileText size={14} className="text-emerald-500" /> Тэтгэлгийн тайлбар
@@ -141,7 +153,6 @@ export default function AddScholarshipPage() {
             />
           </div>
 
-          {/* Холбоос */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
               <LinkIcon size={14} className="text-emerald-500" /> Албан ёсны холбоос
@@ -153,7 +164,6 @@ export default function AddScholarshipPage() {
             />
           </div>
 
-          {/* Submit Button */}
           <div className="pt-4">
             <Button 
               type="submit" 
