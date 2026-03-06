@@ -127,7 +127,7 @@ export default function Home() {
                 {/* Сургалтууд */}
                 <button
                   onClick={() => {
-                    window.location.href = '/courses'; // Эсвэл өөрийн сургалтын хуудасны зам
+                    window.location.href = '/courses'; 
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all"
                 >
@@ -136,8 +136,7 @@ export default function Home() {
                 {/* Бидний тухай */}
                 <button
                   onClick={() => {
-                    /* Энд хуудас хооронд шилжих эсвэл Modal нээх функцээ бичнэ */
-                    window.location.href = '/about'; // Жишээ нь about хуудас руу үсрэх
+                    window.location.href = '/about'; 
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all"
                 >
