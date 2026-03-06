@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
+import { MessageSquare } from "lucide-react";
 // dynamic биш шууд импортоор төрлийг хадгална
 import ScholarshipCard from "@/components/scholarships/scholarshipCard";
 
@@ -127,16 +127,22 @@ export default function Home() {
                 {/* Сургалтууд */}
                 <button
                   onClick={() => {
-                    window.location.href = '/courses'; 
+                    window.location.href = '/courses';
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all"
                 >
                   <BookOpen size={18} /> Сургалтууд
                 </button>
+                <button
+                  onClick={() => { window.location.href = '/forum'; }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all"
+                >
+                  <MessageSquare size={18} /> Форум
+                </button>
                 {/* Бидний тухай */}
                 <button
                   onClick={() => {
-                    window.location.href = '/about'; 
+                    window.location.href = '/about';
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all"
                 >
