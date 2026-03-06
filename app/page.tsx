@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Globe, X, Bookmark } from "lucide-react";
+import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 // dynamic биш шууд импортоор төрлийг хадгална
-import ScholarshipCard from "@/components/scholarships/scholarshipCard"; 
+import ScholarshipCard from "@/components/scholarships/scholarshipCard";
 
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
@@ -60,7 +60,7 @@ export default function Home() {
     const matchesSaved = showSavedOnly ? isSaved(item.id) : true;
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
     const matchesSearch = item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.country?.toLowerCase().includes(searchQuery.toLowerCase());
+      item.country?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSaved && matchesCountry && matchesSearch;
   });
 
@@ -103,12 +103,15 @@ export default function Home() {
                 <LayoutGrid size={14} /> Main Menu
               </p>
               <div className="space-y-1">
+                {/* Бүх тэтгэлгүүд */}
                 <button
                   onClick={() => { setSelectedCountry(null); setShowSavedOnly(false); }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${(!selectedCountry && !showSavedOnly) ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
                 >
                   <Globe size={18} /> Бүх тэтгэлгүүд
                 </button>
+
+                {/* Хадгалсан */}
                 <button
                   onClick={() => { setShowSavedOnly(true); setSelectedCountry(null); }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${showSavedOnly ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
@@ -120,6 +123,25 @@ export default function Home() {
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${showSavedOnly ? 'bg-white text-emerald-600' : 'bg-emerald-100 text-emerald-600'}`}>
                     {savedItems?.length || 0}
                   </span>
+                </button>
+                {/* Сургалтууд */}
+                <button
+                  onClick={() => {
+                    window.location.href = '/courses'; // Эсвэл өөрийн сургалтын хуудасны зам
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all"
+                >
+                  <BookOpen size={18} /> Сургалтууд
+                </button>
+                {/* Бидний тухай */}
+                <button
+                  onClick={() => {
+                    /* Энд хуудас хооронд шилжих эсвэл Modal нээх функцээ бичнэ */
+                    window.location.href = '/about'; // Жишээ нь about хуудас руу үсрэх
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all"
+                >
+                  <Info size={18} /> Бидний тухай
                 </button>
               </div>
             </div>
