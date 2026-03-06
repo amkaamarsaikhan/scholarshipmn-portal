@@ -63,8 +63,7 @@ const Footer = () => {
                     <div>
                         <h4 className="font-bold text-lg mb-6">Үндсэн цэс</h4>
                         <ul className="space-y-4 text-emerald-100/60 text-sm font-medium">
-                            <li><Link href="/scholarships" className="hover:text-emerald-400 transition-colors">Тэтгэлгүүд</Link></li>
-                            <li><Link href="/mentors" className="hover:text-emerald-400 transition-colors">Менторууд</Link></li>
+                            <li><Link href="/" className="hover:text-emerald-400 transition-colors">Тэтгэлгүүд</Link></li>
                             <li><Link href="/courses" className="hover:text-emerald-400 transition-colors">Сургалтууд</Link></li>
                             <li><Link href="/about" className="hover:text-emerald-400 transition-colors">Бидний тухай</Link></li>
                         </ul>
@@ -78,7 +77,7 @@ const Footer = () => {
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
                                     <Phone size={16} />
                                 </div>
-                                <a href="tel:99198805" className="hover:text-white transition-colors">99198805</a>
+                                <a href="tel:99198805" className="hover:text-white transition-colors">+976-99198805</a>
                             </li>
                             <li className="flex items-center gap-3 text-emerald-100/60 text-sm">
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
@@ -90,7 +89,7 @@ const Footer = () => {
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
                                     <MapPin size={16} />
                                 </div>
-                                <span>Улаанбаатар хот, Сүхбаатар дүүрэг, Мэдээлэл Технологийн Үндэсний Парк</span>
+                                <span>Улаанбаатар хот, Сүхбаатар дүүрэг, ITC tower</span>
                             </li>
                         </ul>
                     </div>
@@ -138,7 +137,6 @@ const Footer = () => {
                     <div className="flex gap-8 text-[12px] text-emerald-100/40 font-medium">
                         <Link href="/privacy" className="hover:text-emerald-400 transition-colors">Нууцлалын бодлого</Link>
                         <Link href="/terms" className="hover:text-emerald-400 transition-colors">Үйлчилгээний нөхцөл</Link>
-                        <Link href="/cookies" className="hover:text-emerald-400 transition-colors">Cookies</Link>
                     </div>
                 </div>
             </div>
