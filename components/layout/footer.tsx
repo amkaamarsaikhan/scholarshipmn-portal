@@ -4,11 +4,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
     Facebook, Instagram, Twitter, Mail, MapPin, Phone, 
-    ArrowUpRight, CheckCircle2, Loader2, Send 
+    CheckCircle2, Loader2, Send 
 } from 'lucide-react';
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { sendTelegramNotification } from '@/lib/telegram';
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 
 const Footer = () => {
     const [email, setEmail] = useState("");
@@ -21,13 +20,31 @@ const Footer = () => {
 
         setLoading(true);
         try {
+            // 1. Имэйл өмнө нь бүртгүүлсэн эсэхийг шалгах (Давхардал үүсгэхгүй байх)
+            const q = query(collection(db, "subscribers"), where("email", "==", email));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                setSubscribed(true);
+                setEmail("");
+                setLoading(false);
+                return;
+            }
+
+            // 2. Firebase Firestore-д хадгалах
             await addDoc(collection(db, "subscribers"), {
                 email: email,
                 subscribedAt: serverTimestamp(),
                 status: "active"
             });
 
-            await sendTelegramNotification(`📧 <b>ШИНЭ SUBSCRIBE!</b>\n\nИмэйл: ${email}`);
+            // 3. Админ руу Zoho-гоор мэдэгдэл илгээх API-г дуудах (Telegram-ийн оронд)
+            await fetch('/api/admin-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newUserEmail: email }),
+            });
+
             setSubscribed(true);
             setEmail("");
         } catch (error) {
@@ -89,12 +106,12 @@ const Footer = () => {
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
                                     <MapPin size={16} />
                                 </div>
-                                <span>Улаанбаатар хот, Сүхбаатар дүүрэг, ITC tower</span>
+                                <span>Улаанбаатар хот, ITC tower</span>
                             </li>
                         </ul>
                     </div>
 
-                    {/* Newsletter */}
+                    {/* Newsletter (Бүртгэл хэсэг) */}
                     <div className="bg-white/5 p-8 rounded-3xl border border-white/10 relative overflow-hidden">
                         <div className="relative z-10">
                             <h4 className="font-bold text-lg mb-2">Мэдээлэл авах</h4>
@@ -114,7 +131,7 @@ const Footer = () => {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="Имэйл хаяг"
-                                            className="w-full bg-[#064e3b] border border-emerald-800 rounded-xl px-4 py-4 text-xs focus:outline-none focus:border-emerald-400 transition-all placeholder:text-emerald-100/30"
+                                            className="w-full bg-[#064e3b] border border-emerald-800 rounded-xl px-4 py-4 text-xs focus:outline-none focus:border-emerald-400 transition-all placeholder:text-emerald-100/30 text-white"
                                         />
                                         <button 
                                             disabled={loading}
@@ -130,7 +147,7 @@ const Footer = () => {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-12 border-t border-white/10 flex flex-col md:row-start-2 md:flex-row justify-between items-center gap-6">
+                <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <p className="text-emerald-100/40 text-[12px]">
                         © {new Date().getFullYear()} SCHOLARSHIPMN. Бүх эрх хуулиар хамгаалагдсан.
                     </p>
