@@ -5,7 +5,12 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next"; // 1. Импорт нэмэгдсэн
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Scholarship MN Academy - Тэтгэлгийн мэдээлэл",
+  description: "Монгол оюутнуудад зориулсан гадаад, дотоодын тэтгэлэг болон менторшип хөтөлбөрүүд.",
+};
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans"
