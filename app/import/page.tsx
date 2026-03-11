@@ -616,7 +616,7 @@ const scholarshipsData = [
     description: "CMC коллежийн тэтгэлэг.",
     requirements: ["Leadership", "Academic merit"],
     checklist: ["Common App", "CSS Profile"]
-  }
+  },
   // --- БНХАУ: МУЖИЙН БОЛОН СУРГУУЛИЙН ТЭТГЭЛЭГҮҮД ---
   { 
     title: "Shanghai Government Scholarship (SGS)", country: "China", organization: "Shanghai Municipal Government", category: "Full", deadline: "2026-05-15", link: "http://study.shmec.gov.cn", 
@@ -713,8 +713,8 @@ const scholarshipsData = [
     description: "Кюүшү их сургуулиас шууд санал болгодог MEXT-ийн квоттой тэтгэлэг.",
     requirements: ["English or Japanese proficiency", "Strong interview"],
     checklist: ["MEXT Application Form", "Study Proposal", "Official Transcripts"]
-  }
-  const specializedScholarships = [
+  },
+
   // --- ОХУ БОЛОН ТӨВ АЗИ ---
   { 
     title: "Open Doors: Russian Scholarship Project", country: "Russia", organization: "Global Universities Association", category: "Full", deadline: "2025-12-10", link: "https://od.globaluni.ru", 
