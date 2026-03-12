@@ -13,9 +13,9 @@ export const scholarshipSchema = z.object({
   deadline: z.string().min(1, "Хугацааг сонгоно уу"),
   description: z.string().min(10, "Дэлгэрэнгүй тайлбар оруулна уу"),
   link: z.string().url("Зөв URL хаяг оруулна уу").or(z.literal("")),
-  // Массив төрлүүдийг яг ингэж тодорхойлно
-  requirements: z.array(z.string()),
-  checklist: z.array(z.string()),
+
+  requirements: z.array(z.string()).default([]),
+  checklist: z.array(z.string()).default([]),
 });
 
 export type ScholarshipFormValues = z.infer<typeof scholarshipSchema>;
