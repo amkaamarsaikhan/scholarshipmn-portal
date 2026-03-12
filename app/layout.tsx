@@ -4,13 +4,9 @@ import "./globals.css";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
-import { Analytics } from "@vercel/analytics/next"; // 1. Импорт нэмэгдсэн
-import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 
-export const metadata: Metadata = {
-  title: "Scholarship MN Academy - Тэтгэлгийн мэдээлэл",
-  description: "Монгол оюутнуудад зориулсан гадаад, дотоодын тэтгэлэг болон менторшип хөтөлбөрүүд.",
-};
+// Font тохиргоо
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans"
@@ -21,9 +17,10 @@ const playfair = Playfair_Display({
   variable: "--font-serif"
 });
 
+// Энэ хэсэг ганцхан удаа байх ёстой:
 export const metadata: Metadata = {
-  title: "ProjectA+ | Scholarship Portal",
-  description: "Монгол залууст зориулсан дэлхийн боловсролын гүүр",
+  title: "Scholarship MN Academy | Тэтгэлгийн гүүр",
+  description: "Монгол залууст зориулсан гадаад, дотоодын тэтгэлэг болон менторшип хөтөлбөрүүд.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -31,28 +28,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="mn" className={`${inter.variable} ${playfair.variable}`}>
       <body className="bg-[#F9FAFB] text-slate-900 antialiased">
         <AuthProvider>
-          {/* Dashboard-ийн үндсэн бүтэц */}
           <div className="flex min-h-screen">
-
-            {/* Баруун талын үндсэн агуулга */}
             <div className="flex-1 flex flex-col min-w-0">
-              
-              {/* Дээд талын Navbar (Search & Profile) */}
               <header className="sticky top-0 z-30 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
                 <Navbar />
               </header>
-
-              {/* Хуудасны агуулга */}
               <main className="flex-1">
                 {children}
               </main>
-
               <Footer />
             </div>
           </div>
         </AuthProvider>
-
-        {/* 2. Vercel Analytics-ийг энд байрлуулна */}
         <Analytics /> 
       </body>
     </html>
