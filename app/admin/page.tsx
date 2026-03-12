@@ -63,65 +63,129 @@ export default function AdminDashboard() {
           <h1 className="text-5xl font-black text-slate-900 tracking-tight">Хяналтын самбар</h1>
           <p className="text-slate-500 max-w-lg text-lg font-medium">Тэтгэлэг зарлах болон хэрэглэгчдийн явцыг нэг дороос хянах.</p>
         </div>
+{/* --- 2. ANNOUNCEMENT FORM (Илүү цэлгэр) --- */}
+<section className="bg-white rounded-[3.5rem] p-12 md:p-16 border border-emerald-100 shadow-2xl shadow-emerald-900/5 relative overflow-hidden">
+  <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-50 rounded-full blur-3xl -mr-48 -mt-48 opacity-60" />
+  
+  <div className="relative z-10 space-y-10">
+    <div className="flex items-center gap-4">
+      <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+        <Send size={24} className="text-white" />
+      </div>
+      <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Шинэ тэтгэлэг нийтлэх</h2>
+    </div>
 
-        {/* --- 2. ANNOUNCEMENT FORM (Илүү цэлгэр) --- */}
-        <section className="bg-white rounded-[3.5rem] p-12 md:p-16 border border-emerald-100 shadow-2xl shadow-emerald-900/5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-50 rounded-full blur-3xl -mr-48 -mt-48 opacity-60" />
-          
-          <div className="relative z-10 space-y-10">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                <Send size={24} className="text-white" />
-              </div>
-              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Шинэ тэтгэлэг нийтлэх</h2>
-            </div>
+    <form onSubmit={handleAddAndNotify} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Тэтгэлгийн нэр */}
+      <div className="space-y-3 lg:col-span-2">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Тэтгэлгийн нэр (Title)</label>
+        <Input 
+          className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+          placeholder="Жишээ: World Nomads Travel Scholarship"
+          value={newScholarship.title}
+          onChange={(e) => setNewScholarship({...newScholarship, title: e.target.value})}
+        />
+      </div>
 
-            <form onSubmit={handleAddAndNotify} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="space-y-3 lg:col-span-2">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Тэтгэлгийн нэр</label>
-                <Input 
-                  className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                  placeholder="Жишээ: Global Korea Scholarship 2026"
-                  value={newScholarship.name}
-                  onChange={(e) => setNewScholarship({...newScholarship, name: e.target.value})}
-                />
-              </div>
+      {/* Байгууллага */}
+      <div className="space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Байгууллага (Organization)</label>
+        <Input 
+          className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20"
+          placeholder="World Nomads"
+          value={newScholarship.organization}
+          onChange={(e) => setNewScholarship({...newScholarship, organization: e.target.value})}
+        />
+      </div>
 
-              <div className="space-y-3">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Улс</label>
-                <Input 
-                  className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                  placeholder="Жишээ: South Korea"
-                  value={newScholarship.country}
-                  onChange={(e) => setNewScholarship({...newScholarship, country: e.target.value})}
-                />
-              </div>
+      {/* Улс */}
+      <div className="space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Улс (Country)</label>
+        <Input 
+          className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20"
+          placeholder="Global"
+          value={newScholarship.country}
+          onChange={(e) => setNewScholarship({...newScholarship, country: e.target.value})}
+        />
+      </div>
 
-              <div className="space-y-3">
-                <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Боловсролын түвшин</label>
-                <select 
-                  className="w-full h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-emerald-500/20"
-                  value={newScholarship.level}
-                  onChange={(e) => setNewScholarship({...newScholarship, level: e.target.value})}
-                >
-                  <option value="">Түвшин сонгох</option>
-                  <option value="Бакалавр">Бакалавр</option>
-                  <option value="Магистр">Магистр</option>
-                  <option value="Доктор">Доктор</option>
-                </select>
-              </div>
+      {/* Төрөл */}
+      <div className="space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Төрөл (Category)</label>
+        <select 
+          className="w-full h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-emerald-500/20"
+          value={newScholarship.category}
+          onChange={(e) => setNewScholarship({...newScholarship, category: e.target.value})}
+        >
+          <option value="Full">Бүтэн (Full)</option>
+          <option value="Partial">Хэсэгчилсэн (Partial)</option>
+        </select>
+      </div>
 
-              <div className="lg:col-span-2 flex items-end">
-                <Button 
-                  disabled={sending}
-                  className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-200 active:scale-[0.98]"
-                >
-                  {sending ? "Түр хүлээнэ үү..." : "Тэтгэлгийг зарлах ба Мэдэгдэх"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </section>
+      {/* Дуусах хугацаа */}
+      <div className="space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Дуусах хугацаа (Deadline)</label>
+        <Input 
+          type="date"
+          className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20"
+          value={newScholarship.deadline}
+          onChange={(e) => setNewScholarship({...newScholarship, deadline: e.target.value})}
+        />
+      </div>
+
+      {/* Холбоос */}
+      <div className="lg:col-span-3 space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Холбоос (Link)</label>
+        <Input 
+          className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20"
+          placeholder="https://www.worldnomads.com"
+          value={newScholarship.link}
+          onChange={(e) => setNewScholarship({...newScholarship, link: e.target.value})}
+        />
+      </div>
+
+      {/* Тайлбар */}
+      <div className="lg:col-span-3 space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Тайлбар (Description)</label>
+        <textarea 
+          className="w-full min-h-[120px] rounded-[1.5rem] bg-slate-50 border-none text-lg p-8 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+          placeholder="Тэтгэлгийн тухай дэлгэрэнгүй..."
+          value={newScholarship.description}
+          onChange={(e) => setNewScholarship({...newScholarship, description: e.target.value})}
+        />
+      </div>
+
+      {/* Requirements (Array) */}
+      <div className="lg:col-span-3 space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Шаардлага (Таслалаар тусгаарлах)</label>
+        <Input 
+          className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20"
+          placeholder="English skill, 18+ years old, Portfolio"
+          onChange={(e) => setNewScholarship({...newScholarship, requirements: e.target.value.split(",").map(s => s.trim())})}
+        />
+      </div>
+
+      {/* Checklist (Array) */}
+      <div className="lg:col-span-3 space-y-3">
+        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">Checklist (Таслалаар тусгаарлах)</label>
+        <Input 
+          className="h-16 rounded-[1.5rem] bg-slate-50 border-none text-lg px-8 focus:ring-2 focus:ring-emerald-500/20"
+          placeholder="Short Essay, Application Form, Link to Work"
+          onChange={(e) => setNewScholarship({...newScholarship, checklist: e.target.value.split(",").map(s => s.trim())})}
+        />
+      </div>
+
+      <div className="lg:col-span-3 flex items-end pt-6">
+        <Button 
+          disabled={sending}
+          className="w-full h-16 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-200 active:scale-[0.98]"
+        >
+          {sending ? "Түр хүлээнэ үү..." : "Тэтгэлгийг зарлах ба Мэдэгдэх"}
+        </Button>
+      </div>
+    </form>
+  </div>
+</section>
 
         {/* --- 3. USER TABLE (Илүү том зайн авалттай) --- */}
         <Card className="rounded-[3.5rem] border border-emerald-50 shadow-2xl shadow-emerald-900/5 bg-white overflow-hidden">
