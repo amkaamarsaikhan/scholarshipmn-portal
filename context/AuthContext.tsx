@@ -7,14 +7,14 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  deleteUser
+  deleteUser,
+  updateProfile
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { 
   doc, 
   setDoc, 
   serverTimestamp, 
-  getDoc, 
   updateDoc, 
   deleteDoc, 
   arrayUnion, 
@@ -23,7 +23,8 @@ import {
   collection,
   query,
   where,
-  documentId
+  documentId,
+  getDocs
 } from 'firebase/firestore';
 import { sendTelegramNotification } from '@/lib/telegram';
 
@@ -58,7 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isSaved = (id: string) => savedItems.some(i => i.id === id);
 
-  // --- Real-time тэтгэлэг татах логик ---
   useEffect(() => {
     let unsubscribeUser: () => void;
     
@@ -66,17 +66,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(u);
       
       if (u) {
-        // Хэрэглэгчийн баримтыг Real-time сонсох
         unsubscribeUser = onSnapshot(doc(db, "users", u.uid), async (userDoc) => {
           if (userDoc.exists()) {
             const savedIds = userDoc.data().savedScholarships || [];
             
             if (savedIds.length > 0) {
-              // ID-нуудаар тэтгэлгийн мэдээллийг татах
-              const sQuery = query(collection(db, "scholarships"), where(documentId(), "in", savedIds));
-              const sSnap = await getDocs(sQuery); // query дотор snapshot ашиглаж болно, гэвч энэ хэсэгт хялбарчилсан
-              const sList = sSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              setSavedItems(sList);
+              try {
+                const sQuery = query(collection(db, "scholarships"), where(documentId(), "in", savedIds));
+                const sSnap = await getDocs(sQuery);
+                const sList = sSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setSavedItems(sList);
+              } catch (err) {
+                console.error("Scholarships fetch error:", err);
+              }
             } else {
               setSavedItems([]);
             }
@@ -127,7 +129,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const userEmail = user.email;
       const userUid = user.uid;
       
-      // 1. Хэрэглэгчийн бүх явцыг (progress) устгах логик энд нэмэгдэж болно
       await deleteDoc(doc(db, "users", userUid));
       await deleteUser(user);
       await sendTelegramNotification(`🗑️ <b>БҮРТГЭЛ УСТЛАА</b>\n\n📧 Email: ${userEmail}`);
@@ -136,7 +137,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       window.location.href = "/";
     } catch (error: any) {
       if (error.code === "auth/requires-recent-login") {
-        alert("Дахин нэвтэрсний дараа устгах боломжтой.");
+        alert("Аюулгүй байдлын үүднээс дахин нэвтэрсний дараа устгах боломжтой.");
         await signOut(auth);
       }
     }
@@ -144,18 +145,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const register = async (email: string, password: string) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Имэйлийн эхний хэсгийг нэр болгон авах
+    const autoDisplayName = email.split('@')[0];
+
+    // 1. Firebase Auth Profile шинэчлэх (Төлөв: "Сайн байна уу, [DisplayName]")
+    await updateProfile(res.user, {
+      displayName: autoDisplayName
+    });
+
+    // 2. Firestore-д хэрэглэгчийн баримт үүсгэх
     await setDoc(doc(db, "users", res.user.uid), {
       uid: res.user.uid,
       email: res.user.email,
-      displayName: email.split('@')[0],
+      displayName: autoDisplayName,
       status: "not-started",
       savedScholarships: [],
       createdAt: serverTimestamp()
     });
+
     await sendTelegramNotification(`👤 <b>ШИНЭ ХЭРЭГЛЭГЧ!</b>\n\n📧 Email: ${email}`);
   };
 
   const login = (e: string, p: string) => signInWithEmailAndPassword(auth, e, p).then(() => {});
+  
   const logout = () => signOut(auth);
 
   return (
@@ -168,4 +181,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-import { getDocs } from 'firebase/firestore'; // Дутуу байсныг нэмэв
