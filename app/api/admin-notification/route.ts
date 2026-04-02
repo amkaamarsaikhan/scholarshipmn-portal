@@ -1,12 +1,9 @@
-
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
-export const runtime = "nodejs";
-
 export async function POST(req: Request) {
     try {
-        const { userEmail, userName, scholarshipTitle } = await req.json();
+        const { newUserEmail } = await req.json();
 
         const transporter = nodemailer.createTransport({
             host: "smtp.zoho.com",
@@ -20,22 +17,21 @@ export async function POST(req: Request) {
 
         await transporter.sendMail({
             from: `"Scholarship MN System" <${process.env.ZOHO_EMAIL}>`,
-            to: process.env.ZOHO_EMAIL, // Өөрийнхөө имэйл рүү (Админ) хүлээн авна
-            subject: `✅ Checklist Дууслаа: ${userName}`,
+            to: process.env.ZOHO_EMAIL,
+            subject: `🆕 Шинэ хэрэглэгч бүртгүүллээ`,
             html: `
-                <div style="font-family: sans-serif; padding: 20px; border: 2px solid #10b981; border-radius: 10px;">
-                    <h2 style="color: #10b981;">Шинэ Checklist Дууслаа!</h2>
-                    <p><b>Хэрэглэгч:</b> ${userName}</p>
-                    <p><b>Имэйл:</b> ${userEmail}</p>
-                    <p><b>Тэтгэлэг:</b> ${scholarshipTitle}</p>
-                    <p><b>Төлөв:</b> Хэрэглэгч бүх материалын жагсаалтаа бүрэн чагталж дуусгалаа.</p>
+                <div style="font-family: sans-serif; padding: 20px; border: 2px solid #3b82f6; border-radius: 10px;">
+                    <h2 style="color: #3b82f6;">Шинэ Newsletter Бүртгэл!</h2>
+                    <p><b>Имэйл хаяг:</b> ${newUserEmail}</p>
+                    <p><b>Хугацаа:</b> ${new Date().toLocaleString()}</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                    <p style="font-size: 12px; color: #666;">Энэхүү мэдэгдэл нь Footer-ийн бүртгэл хэсгээс автоматаар илгээгдэв.</p>
                 </div>
             `,
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Email Error:", error);
-        return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to notify admin" }, { status: 500 });
     }
 }
