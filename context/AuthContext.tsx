@@ -33,7 +33,7 @@ interface AuthContextType {
   savedItems: any[];
   toggleSave: (item: any) => Promise<void>;
   isSaved: (id: string) => boolean;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, extraData: { phone: string; age: string; birthDate: string }) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -63,12 +63,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     const authUnsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      
       if (u) {
         unsubscribeUser = onSnapshot(doc(db, "users", u.uid), async (userDoc) => {
           if (userDoc.exists()) {
             const savedIds = userDoc.data().savedScholarships || [];
-            
             if (savedIds.length > 0) {
               try {
                 const sQuery = query(collection(db, "scholarships"), where(documentId(), "in", savedIds));
@@ -95,24 +93,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+  const register = async (email: string, password: string, extraData: { phone: string; age: string; birthDate: string }) => {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+    const newUser = res.user;
+    const autoDisplayName = email.split('@')[0];
+
+    await updateProfile(newUser, { displayName: autoDisplayName });
+
+    await setDoc(doc(db, "users", newUser.uid), {
+      uid: newUser.uid,
+      email: email,
+      displayName: autoDisplayName,
+      phone: extraData.phone,
+      age: parseInt(extraData.age),
+      birthDate: extraData.birthDate,
+      status: "not-started",
+      profileCompleted: true,
+      savedScholarships: [],
+      createdAt: serverTimestamp()
+    });
+
+    await fetch("/api/admin-notification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subject: "Шинэ хэрэглэгч бүртгүүллээ",
+        email: email,
+        phone: extraData.phone
+      }),
+    });
+  };
+
   const toggleSave = async (item: any) => {
     if (!user) return alert("Нэвтэрсний дараа хадгалах боломжтой!");
-
     const userRef = doc(db, "users", user.uid);
-    const alreadySaved = isSaved(item.id);
-
     try {
-      if (alreadySaved) {
-        await updateDoc(userRef, { 
-          savedScholarships: arrayRemove(item.id) 
-        });
+      if (isSaved(item.id)) {
+        await updateDoc(userRef, { savedScholarships: arrayRemove(item.id) });
       } else {
         await updateDoc(userRef, { 
           savedScholarships: arrayUnion(item.id),
           lastUpdatedScholarship: item.title 
         });
-
-        // Хадгалах үеийн и-мэйл мэдэгдэл илгээх (заавал биш)
         await fetch("/api/admin-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -128,78 +150,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const login = (e: string, p: string) => signInWithEmailAndPassword(auth, e, p).then(() => {});
+  const logout = () => signOut(auth);
+
   const deleteAccount = async () => {
     if (!user) return;
     const confirmDelete = confirm("Та бүртгэлээ бүрэн устгахдаа итгэлтэй байна уу?");
     if (!confirmDelete) return;
 
     try {
-      const userEmail = user.email;
-      const userUid = user.uid;
-      
-      await deleteDoc(doc(db, "users", userUid));
+      const email = user.email;
+      await deleteDoc(doc(db, "users", user.uid));
       await deleteUser(user);
-      
       await fetch("/api/admin-notification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: "Бүртгэл устлаа",
-          email: userEmail
-        }),
+        body: JSON.stringify({ subject: "Бүртгэл устлаа", email: email }),
       });
-
-      alert("Амжилттай устлаа.");
       window.location.href = "/";
     } catch (error: any) {
       if (error.code === "auth/requires-recent-login") {
-        alert("Аюулгүй байдлын үүднээс дахин нэвтэрсний дараа устгах боломжтой.");
+        alert("Дахин нэвтэрсний дараа устгах боломжтой.");
         await signOut(auth);
       }
     }
   };
-
-  const register = async (email: string, password: string) => {
-    // 1. Firebase Auth хэрэглэгч үүсгэх
-    const res = await createUserWithEmailAndPassword(auth, email, password);
-    const newUser = res.user;
-    
-    const autoDisplayName = email.split('@')[0];
-
-    // 2. Auth Profile-д нэрийг нь хадгалах
-    await updateProfile(newUser, {
-      displayName: autoDisplayName
-    });
-
-    // 3. Firestore-д хэрэглэгчийн мэдээллийг хадгалах
-    await setDoc(doc(db, "users", newUser.uid), {
-      uid: newUser.uid,
-      email: email, // Параметрээр ирсэн email-ийг шууд ашиглаж байна
-      displayName: autoDisplayName,
-      status: "not-started",
-      savedScholarships: [],
-      createdAt: serverTimestamp()
-    });
-
-    // 4. Админ руу и-мэйл мэдэгдэл илгээх (undefined-аас сэргийлсэн)
-    try {
-      await fetch("/api/admin-notification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: "Шинэ хэрэглэгч бүртгүүллээ",
-          email: email, // Энд 'email' параметр найдвартай байна
-          name: autoDisplayName
-        }),
-      });
-    } catch (err) {
-      console.error("Notification error:", err);
-    }
-  };
-
-  const login = (e: string, p: string) => signInWithEmailAndPassword(auth, e, p).then(() => {});
-  
-  const logout = () => signOut(auth);
 
   return (
     <AuthContext.Provider value={{ 
