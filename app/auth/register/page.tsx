@@ -19,7 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-// 1. Баталгаажуулалтын схем (Zod)
+// 1. Баталгаажуулалтын схем
 const registerSchema = z.object({
   email: z.string().email("Хүчинтэй имэйл хаяг оруулна уу."),
   password: z.string().min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой."),
@@ -36,7 +36,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
 
-  // 2. React Hook Form тохируулга
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -49,10 +48,13 @@ export default function RegisterPage() {
   const onSubmit = async (values: RegisterFormValues) => {
     setError("");
     try {
+      // Register функц рүү email, password-оо дамжуулна
+      // Нэрийг нь AuthContext дотор email-ээс нь салгаж авна
       await register(values.email, values.password);
       router.push("/");
     } catch (err: any) {
-      setError("Бүртгэл амжилтгүй боллоо. Дахин оролдоно уу.");
+      console.error("Registration error:", err);
+      setError(err.message || "Бүртгэл амжилтгүй боллоо. Дахин оролдоно уу.");
     }
   };
 
@@ -61,7 +63,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md rounded-[2.5rem] shadow-xl border-none p-6">
         <CardHeader className="space-y-1 items-center">
           <CardTitle className="text-3xl font-black text-slate-800">Бүртгүүлэх</CardTitle>
-          <p className="text-slate-400 text-sm">ProjectA+ платформын гишүүн болох</p>
+          <p className="text-slate-400 text-sm">Scholarship MN платформын гишүүн болох</p>
         </CardHeader>
         <CardContent>
           <Form {...form}>

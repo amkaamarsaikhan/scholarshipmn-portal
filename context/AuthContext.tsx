@@ -26,7 +26,6 @@ import {
   documentId,
   getDocs
 } from 'firebase/firestore';
-import { sendTelegramNotification } from '@/lib/telegram';
 
 interface AuthContextType {
   user: User | null;
@@ -113,7 +112,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           lastUpdatedScholarship: item.title 
         });
 
-        await sendTelegramNotification(`🌟 <b>ШИНЭ ХАДГАЛАЛТ!</b>\n\n👤 Хэрэглэгч: ${user.email}\n🎓 Тэтгэлэг: ${item.title}`);
+        // Хадгалах үеийн и-мэйл мэдэгдэл илгээх (заавал биш)
+        await fetch("/api/admin-notification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject: "Хэрэглэгч тэтгэлэг хадгаллаа",
+            email: user.email,
+            scholarship: item.title
+          }),
+        });
       }
     } catch (error) {
       console.error("Save error:", error);
@@ -131,7 +139,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       await deleteDoc(doc(db, "users", userUid));
       await deleteUser(user);
-      await sendTelegramNotification(`🗑️ <b>БҮРТГЭЛ УСТЛАА</b>\n\n📧 Email: ${userEmail}`);
+      
+      await fetch("/api/admin-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: "Бүртгэл устлаа",
+          email: userEmail
+        }),
+      });
 
       alert("Амжилттай устлаа.");
       window.location.href = "/";
@@ -144,27 +160,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const register = async (email: string, password: string) => {
+    // 1. Firebase Auth хэрэглэгч үүсгэх
     const res = await createUserWithEmailAndPassword(auth, email, password);
+    const newUser = res.user;
     
-    // Имэйлийн эхний хэсгийг нэр болгон авах
     const autoDisplayName = email.split('@')[0];
 
-    // 1. Firebase Auth Profile шинэчлэх (Төлөв: "Сайн байна уу, [DisplayName]")
-    await updateProfile(res.user, {
+    // 2. Auth Profile-д нэрийг нь хадгалах
+    await updateProfile(newUser, {
       displayName: autoDisplayName
     });
 
-    // 2. Firestore-д хэрэглэгчийн баримт үүсгэх
-    await setDoc(doc(db, "users", res.user.uid), {
-      uid: res.user.uid,
-      email: res.user.email,
+    // 3. Firestore-д хэрэглэгчийн мэдээллийг хадгалах
+    await setDoc(doc(db, "users", newUser.uid), {
+      uid: newUser.uid,
+      email: email, // Параметрээр ирсэн email-ийг шууд ашиглаж байна
       displayName: autoDisplayName,
       status: "not-started",
       savedScholarships: [],
       createdAt: serverTimestamp()
     });
 
-    await sendTelegramNotification(`👤 <b>ШИНЭ ХЭРЭГЛЭГЧ!</b>\n\n📧 Email: ${email}`);
+    // 4. Админ руу и-мэйл мэдэгдэл илгээх (undefined-аас сэргийлсэн)
+    try {
+      await fetch("/api/admin-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: "Шинэ хэрэглэгч бүртгүүллээ",
+          email: email, // Энд 'email' параметр найдвартай байна
+          name: autoDisplayName
+        }),
+      });
+    } catch (err) {
+      console.error("Notification error:", err);
+    }
   };
 
   const login = (e: string, p: string) => signInWithEmailAndPassword(auth, e, p).then(() => {});
