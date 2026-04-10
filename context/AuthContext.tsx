@@ -33,7 +33,8 @@ interface AuthContextType {
   savedItems: any[];
   toggleSave: (item: any) => Promise<void>;
   isSaved: (id: string) => boolean;
-  register: (email: string, password: string, extraData: { phone: string; age: string; birthDate: string }) => Promise<void>;
+  // extraData-г сонголттой болгож өөрчлөв
+  register: (email: string, password: string, extraData?: { phone: string; age: string; birthDate: string }) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -93,22 +94,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const register = async (email: string, password: string, extraData: { phone: string; age: string; birthDate: string }) => {
+  const register = async (email: string, password: string, extraData?: { phone: string; age: string; birthDate: string }) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const newUser = res.user;
     const autoDisplayName = email.split('@')[0];
 
     await updateProfile(newUser, { displayName: autoDisplayName });
 
+    // Мэдээлэл ирээгүй бол хоосон утгаар хадгална
     await setDoc(doc(db, "users", newUser.uid), {
       uid: newUser.uid,
       email: email,
       displayName: autoDisplayName,
-      phone: extraData.phone,
-      age: parseInt(extraData.age),
-      birthDate: extraData.birthDate,
+      phone: extraData?.phone || "",
+      age: extraData?.age ? parseInt(extraData.age) : 0,
+      birthDate: extraData?.birthDate || "",
       status: "not-started",
-      profileCompleted: true,
+      profileCompleted: !!extraData, // Мэдээлэл ирсэн бол true, үгүй бол false
       savedScholarships: [],
       createdAt: serverTimestamp()
     });
@@ -119,7 +121,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       body: JSON.stringify({
         subject: "Шинэ хэрэглэгч бүртгүүллээ",
         email: email,
-        phone: extraData.phone
+        phone: extraData?.phone || "Мэдээлэлгүй"
       }),
     });
   };

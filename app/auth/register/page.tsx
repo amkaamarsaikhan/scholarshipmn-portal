@@ -19,7 +19,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-// 1. Баталгаажуулалтын схем
 const registerSchema = z.object({
   email: z.string().email("Хүчинтэй имэйл хаяг оруулна уу."),
   password: z.string().min(6, "Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой."),
@@ -48,8 +47,7 @@ export default function RegisterPage() {
   const onSubmit = async (values: RegisterFormValues) => {
     setError("");
     try {
-      // Register функц рүү email, password-оо дамжуулна
-      // Нэрийг нь AuthContext дотор email-ээс нь салгаж авна
+      // Одоо зөвхөн 2 утга дамжуулахад алдаа гарахгүй
       await register(values.email, values.password);
       router.push("/");
     } catch (err: any) {
