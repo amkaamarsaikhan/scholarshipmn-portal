@@ -2,24 +2,39 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, getDocs } from "firebase/firestore";
 import {
     Star,
     Clock,
     ArrowRight,
-    CheckCircle2,
-    Loader2
+    Loader2,
+    CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 
-// Бүртгэлийн хуудсан дээр байдаг бүх боломжит сургалтын төрлүүд
+// 1. Өгөгдлийн бүтцийг TypeScript-д танилцуулах (Interface)
+interface Partner {
+    id: string;
+    name?: string;
+    approved?: boolean;
+    targetCountries?: string[];
+    featuredImage?: string;
+    logo?: string;
+    description?: string;
+    link?: string;
+    createdAt?: {
+        seconds: number;
+        nanoseconds: number;
+    };
+}
+
 const COURSE_TAGS = [
-    "IELTS", "TOPIK", "HSK", "JLPT", "German", "French", 
+    "IELTS", "TOPIK", "HSK", "JLPT", "German", "French",
     "Математик", "Физик", "Нийгэм", "Эссэ бичих"
 ];
 
 export default function CoursesPage() {
-    const [partners, setPartners] = useState<any[]>([]);
+    const [partners, setPartners] = useState<Partner[]>([]); // any[] биш Partner[] болгов
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState("Бүгд");
 
@@ -27,25 +42,35 @@ export default function CoursesPage() {
         const fetchCoursePartners = async () => {
             try {
                 const partnersRef = collection(db, "partners");
-                // Зөвхөн админ зөвшөөрсөн партнеруудыг татах
-                const q = query(
-                    partnersRef, 
-                    where("approved", "==", true),
-                    orderBy("createdAt", "desc")
-                );
-                
+                const q = query(partnersRef);
+
                 const querySnapshot = await getDocs(q);
+                
+                // 2. Датаг Partner төрлөөр баталгаажуулж авах
                 const allPartners = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
-                }));
+                })) as Partner[];
 
-                // targetCountries дотор нь COURSE_TAGS-д багтсан ямар нэг курс байгаа партнеруудыг шүүнэ
-                const courseOnlyPartners = allPartners.filter((p: any) => 
-                    p.targetCountries?.some((tag: string) => COURSE_TAGS.includes(tag))
-                );
+                console.log("Нийт дата:", allPartners);
 
-                setPartners(courseOnlyPartners);
+                // 3. Шүүлтүүр хийх (Approved + Course check)
+                const courseOnlyPartners = allPartners.filter((p) => {
+                    const isApproved = p.approved === true;
+                    const hasCourse = p.targetCountries?.some((tag: string) =>
+                        COURSE_TAGS.includes(tag.trim())
+                    );
+                    return isApproved && hasCourse;
+                });
+
+                // 4. Эрэмбэлэх (createdAt алдаа арилсан)
+                const sortedPartners = courseOnlyPartners.sort((a, b) => {
+                    const dateA = a.createdAt?.seconds || 0;
+                    const dateB = b.createdAt?.seconds || 0;
+                    return dateB - dateA;
+                });
+
+                setPartners(sortedPartners);
             } catch (error) {
                 console.error("Error fetching partners:", error);
             } finally {
@@ -56,12 +81,10 @@ export default function CoursesPage() {
         fetchCoursePartners();
     }, []);
 
-    // Бүх курсуудыг шүүлтүүр дээр харуулах (Бүгд + Жагсаалт)
     const filterButtons = ["Бүгд", ...COURSE_TAGS];
 
-    // Сонгосон төрлөөр датаг шүүх
-    const filteredData = activeFilter === "Бүгд" 
-        ? partners 
+    const filteredData = activeFilter === "Бүгд"
+        ? partners
         : partners.filter(p => p.targetCountries?.includes(activeFilter));
 
     if (loading) {
@@ -95,17 +118,16 @@ export default function CoursesPage() {
                         <p className="text-gray-500 font-bold italic text-sm text-emerald-900/40">Бүртгүүлсэн партнеруудын мэдээлэл</p>
                     </div>
 
-                    {/* Фильтр товчлуурууд - Одоо бүгд харагдана */}
                     <div className="flex flex-wrap gap-2 max-w-2xl justify-end">
                         {filterButtons.map((cat) => (
-                            <button 
-                                key={cat} 
+                            <button
+                                key={cat}
                                 onClick={() => setActiveFilter(cat)}
                                 className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all border uppercase italic tracking-widest ${
-                                    activeFilter === cat 
-                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20" 
-                                    : "bg-white text-gray-400 border-gray-200 hover:border-emerald-500 hover:text-emerald-600"
-                                }`}
+                                    activeFilter === cat
+                                        ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
+                                        : "bg-white text-gray-400 border-gray-200 hover:border-emerald-500 hover:text-emerald-600"
+                                    }`}
                             >
                                 {cat}
                             </button>
@@ -113,15 +135,13 @@ export default function CoursesPage() {
                     </div>
                 </div>
 
-                {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredData.map((partner) => (
                         <div key={partner.id} className="bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
-                            {/* Banner Image */}
                             <div className="relative h-56 overflow-hidden">
-                                <img 
-                                    src={partner.featuredImage} 
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                <img
+                                    src={partner.featuredImage}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt={partner.name}
                                 />
                                 <div className="absolute top-4 left-4 flex flex-wrap gap-2">
@@ -134,7 +154,6 @@ export default function CoursesPage() {
                             </div>
 
                             <div className="p-8">
-                                {/* Logo & Title */}
                                 <div className="flex items-center gap-4 mb-6">
                                     <img src={partner.logo} className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-gray-100" alt="logo" />
                                     <div>
@@ -153,7 +172,7 @@ export default function CoursesPage() {
                                         <span>Бүртгэл нээлттэй</span>
                                     </div>
                                     <div className="flex items-center text-amber-400 gap-1 italic">
-                                        <Star size={14} fill="currentColor" /> 
+                                        <Star size={14} fill="currentColor" />
                                         <span className="text-slate-900 text-xs font-black">5.0</span>
                                     </div>
                                 </div>
@@ -168,7 +187,6 @@ export default function CoursesPage() {
                     ))}
                 </div>
 
-                {/* Хоосон үед харагдах хэсэг */}
                 {filteredData.length === 0 && (
                     <div className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-gray-100">
                         <p className="text-gray-300 font-black uppercase italic tracking-[0.2em] text-sm">Одоогоор энэ чиглэлээр сургалт бүртгэгдээгүй байна.</p>
