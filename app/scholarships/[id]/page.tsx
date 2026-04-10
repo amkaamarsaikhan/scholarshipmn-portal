@@ -2,26 +2,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from "@/lib/firebase";
-import { 
-  doc, 
-  getDoc, 
-  updateDoc, 
-  collection, 
-  query, 
-  where, 
-  getDocs 
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs
 } from "firebase/firestore";
-import { sendTelegramNotification } from "@/lib/telegram"; 
+import { sendTelegramNotification } from "@/lib/telegram";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  ExternalLink, 
-  Clock, 
-  Globe2, 
-  GraduationCap, 
-  Lightbulb, 
+import {
+  ArrowLeft,
+  ExternalLink,
+  Clock,
+  Globe2,
+  GraduationCap,
+  Lightbulb,
   CheckCircle2,
   Building2
 } from 'lucide-react';
@@ -44,7 +44,7 @@ export default function ScholarshipDetailsPage() {
         // 1. Тэтгэлгийн мэдээллийг татах
         const docRef = doc(db, "scholarships", id as string);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
           const scholarshipData = docSnap.data();
           setData(scholarshipData);
@@ -53,7 +53,7 @@ export default function ScholarshipDetailsPage() {
           if (scholarshipData.country) {
             const partnersRef = collection(db, "partners");
             const q = query(
-              partnersRef, 
+              partnersRef,
               where("targetCountries", "array-contains", scholarshipData.country)
             );
             const pSnap = await getDocs(q);
@@ -72,11 +72,11 @@ export default function ScholarshipDetailsPage() {
 
   const toggleCheck = async (index: number) => {
     if (!data) return;
-    
+
     const checklistItems = data.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
-    
-    const newCheckedItems = checkedItems.includes(index) 
-      ? checkedItems.filter(i => i !== index) 
+
+    const newCheckedItems = checkedItems.includes(index)
+      ? checkedItems.filter(i => i !== index)
       : [...checkedItems, index];
 
     setCheckedItems(newCheckedItems);
@@ -90,10 +90,10 @@ export default function ScholarshipDetailsPage() {
         });
 
         const tgMessage = `✅ <b>CHECKLIST ДУУСЛАА!</b>\n\n` +
-                          `👤 <b>Хэрэглэгч:</b> ${user.displayName || user.email}\n` +
-                          `🎓 <b>Тэтгэлэг:</b> ${data.title}\n` +
-                          `🚀 <b>Төлөв:</b> Бүх материалаа бүрдүүлж дууслаа.`;
-        
+          `👤 <b>Хэрэглэгч:</b> ${user.displayName || user.email}\n` +
+          `🎓 <b>Тэтгэлэг:</b> ${data.title}\n` +
+          `🚀 <b>Төлөв:</b> Бүх материалаа бүрдүүлж дууслаа.`;
+
         await sendTelegramNotification(tgMessage);
 
         await fetch('/api/admin-notification', {
@@ -119,7 +119,7 @@ export default function ScholarshipDetailsPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
       <div className="max-w-7xl mx-auto px-6 pt-24">
-        <button 
+        <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-12 font-medium group"
         >
@@ -199,7 +199,7 @@ export default function ScholarshipDetailsPage() {
                       <p className="text-xs text-slate-500 mb-6 line-clamp-2 leading-relaxed">
                         {partner.description || `${data.country} улсын тэтгэлэгт зуучлах, визний зөвлөгөө өгөх мэргэжлийн хамт олон.`}
                       </p>
-                      <a href={partner.link || "#"} target="_blank" rel="noopener noreferrer">
+                      <a href={`/partners/${partner.id}`}>
                         <Button variant="outline" className="w-full h-12 rounded-xl border-emerald-200 text-emerald-700 font-bold hover:bg-emerald-600 hover:text-white transition-all">
                           Зөвлөгөө авах
                         </Button>
@@ -223,18 +223,16 @@ export default function ScholarshipDetailsPage() {
 
               <div className="space-y-3 mb-10">
                 {currentChecklist.map((item: string, index: number) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     onClick={() => toggleCheck(index)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${
-                      checkedItems.includes(index) 
-                        ? 'bg-emerald-500/10 border-emerald-500/50' 
+                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${checkedItems.includes(index)
+                        ? 'bg-emerald-500/10 border-emerald-500/50'
                         : 'bg-white/5 border-transparent hover:bg-white/10'
-                    }`}
+                      }`}
                   >
-                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${
-                      checkedItems.includes(index) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600'
-                    }`}>
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${checkedItems.includes(index) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600'
+                      }`}>
                       {checkedItems.includes(index) && <CheckCircle2 size={14} className="text-white" />}
                     </div>
                     <span className={`font-medium ${checkedItems.includes(index) ? 'text-emerald-400' : 'text-slate-300'}`}>
