@@ -45,7 +45,7 @@ export default function CoursesPage() {
                 const q = query(partnersRef);
 
                 const querySnapshot = await getDocs(q);
-                
+
                 // 2. Датаг Partner төрлөөр баталгаажуулж авах
                 const allPartners = querySnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -123,8 +123,7 @@ export default function CoursesPage() {
                             <button
                                 key={cat}
                                 onClick={() => setActiveFilter(cat)}
-                                className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all border uppercase italic tracking-widest ${
-                                    activeFilter === cat
+                                className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all border uppercase italic tracking-widest ${activeFilter === cat
                                         ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
                                         : "bg-white text-gray-400 border-gray-200 hover:border-emerald-500 hover:text-emerald-600"
                                     }`}
@@ -177,11 +176,11 @@ export default function CoursesPage() {
                                     </div>
                                 </div>
 
-                                <a href={partner.link} target="_blank" rel="noopener noreferrer">
+                                <Link href={`/partners/${partner.id}`}>
                                     <button className="w-full mt-4 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 uppercase italic text-xs tracking-widest shadow-sm">
                                         Дэлгэрэнгүй үзэх <ArrowRight size={18} />
                                     </button>
-                                </a>
+                                </Link>
                             </div>
                         </div>
                     ))}
