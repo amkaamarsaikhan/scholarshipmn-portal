@@ -6,17 +6,14 @@ export const preferredRegion = 'sin1';
 export async function POST(req: Request) {
     try {
         const apiKey = process.env.GEMINI_API_KEY;
-
-        if (!apiKey) {
-            return NextResponse.json({ error: "API Key missing" }, { status: 500 });
-        }
+        if (!apiKey) return NextResponse.json({ error: "API Key missing" }, { status: 500 });
 
         const { messages } = await req.json();
         const lastMessage = messages[messages.length - 1].content;
 
-        // SDK-ийн оронд шууд хаягаар нь дуудаж байна
+        // МОДЕЛИЙГ GEMINI-PRO БОЛГОЖ ӨӨРЧЛӨВ
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -33,7 +30,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: data.error.message }, { status: 500 });
         }
 
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Хариулт алга.";
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Уучлаарай, хариулт олдсонгүй.";
         return NextResponse.json({ content: aiText });
 
     } catch (error: any) {
