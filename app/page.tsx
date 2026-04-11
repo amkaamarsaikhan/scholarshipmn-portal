@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { MessageSquare } from "lucide-react";
-// dynamic биш шууд импортоор төрлийг хадгална
+import SearchSection from "@/components/SearchSection";
 import ScholarshipCard from "@/components/scholarships/scholarshipCard";
 
 import { getScholarships } from "@/lib/actions/getScholarships";
@@ -79,19 +79,10 @@ export default function Home() {
           </motion.div>
         </AnimatePresence>
         <div className="container mx-auto px-6 text-center relative z-10 text-white">
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8 }}>
-            <h1 className="text-4xl md:text-5xl font-serif italic mb-4">{HERO_SLIDES[current].title}</h1>
-            <h2 className="text-3xl md:text-4xl font-sans font-black mb-8 text-emerald-400">{HERO_SLIDES[current].subtitle}</h2>
-            <div className="max-w-xl mx-auto flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-lg">
-              <Input
-                placeholder="Тэтгэлэг хайх..."
-                className="border-none bg-transparent text-white placeholder:text-emerald-100/50 focus-visible:ring-0"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Button className="bg-emerald-600 hover:bg-emerald-500 rounded-md px-6 uppercase text-[10px] tracking-widest font-bold">Хайх</Button>
-            </div>
-          </motion.div>
+        <section className="py-10">
+                  <h2 className="text-center text-2xl font-bold mb-6">Таны AI ухаалаг туслах</h2>
+                  <SearchSection />
+                </section>
         </div>
       </section>
 
