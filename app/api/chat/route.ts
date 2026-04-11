@@ -5,7 +5,6 @@ export async function POST(req: Request) {
         const apiKey = process.env.GEMINI_API_KEY;
         const { message } = await req.json();
 
-        // 1. API хүсэлт явуулах (gemini-2.5-flash хэвээр үлдээв)
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
             {
@@ -14,21 +13,27 @@ export async function POST(req: Request) {
                 body: JSON.stringify({
                     contents: [{
                         parts: [{
-                            text: `Чи бол тэтгэлэг хайлтын туслах. Хэрэглэгчийн өгүүлбэрээс IELTS оноо болон Улсын нэрийг салгаж аваарай.
-                            
+                            text: `Чи бол тэтгэлэг хайлтын ухаалаг туслах. Хэрэглэгчийн Монгол хэлээр бичсэн хүсэлтийг хайлтын параметрүүд рүү хөрвүүл.
+
                             ДҮРЭМ:
-                            1. Улсын нэрийг заавал Англиар (жишээ нь: South Korea, USA, Germany, Japan) буцаа.
-                            2. IELTS оноог тоогоор буцаа.
-                            3. Зөвхөн JSON формат ашигла. Өөр ямар ч тайлбар бичиж болохгүй.
+                            1. Улсын нэрийг Англиар стандарт хэлбэрт оруул (Жишээ нь: Солонгос -> South Korea, АНУ/Америк -> USA, Япон -> Japan, Герман -> Germany, Канад -> Canada).
+                            2. IELTS эсвэл TOEFL-ийн оноог "ielts" гэдэг key-д тоогоор хадгал.
+                            3. Хэрэв хэрэглэгч боловсролын зэрэг (Бакалавр, Магистр, Доктор) хэлсэн бол "degree" key-д Англиар (Bachelor, Master, PhD) хадгал.
+                            4. "isSearch" утгыг хайлт хийх боломжтой үед л true болго.
                             
-                            Хэрэв хайлт мөн бол: {"isSearch": true, "country": "Country Name", "ielts": 6.5}
-                            Хэрэв хайлт биш бол: {"isSearch": false}
-                            
+                            ХАРИУ ӨГӨХ ФОРМАТ (ЗӨВХӨН JSON):
+                            {
+                              "isSearch": true,
+                              "country": "South Korea" | "USA" | "Japan" | null,
+                              "ielts": number | null,
+                              "degree": "Bachelor" | "Master" | "PhD" | null,
+                              "keyword": "Мэргэжил эсвэл бусад түлхүүр үг" | null
+                            }
+
                             Хэрэглэгчийн өгүүлбэр: "${message}"`
                         }]
                     }],
                     generationConfig: {
-                        // AI-г заавал JSON буцаадаг болгох "түгжээ"
                         response_mime_type: "application/json",
                     }
                 })
@@ -36,28 +41,18 @@ export async function POST(req: Request) {
         );
 
         const data = await response.json();
-
+        
         if (!data.candidates || !data.candidates[0]) {
-            return NextResponse.json({ isSearch: false, error: "AI хариу өгсөнгүй" });
+            return NextResponse.json({ isSearch: false });
         }
 
-        let aiRawText = data.candidates[0].content.parts[0].text.trim();
-
-        // AI заримдаа ```json ... ``` дотор хариугаа хийчихдэг тул цэвэрлэх логик
-        if (aiRawText.startsWith("```")) {
-            aiRawText = aiRawText.replace(/^```json/i, "").replace(/```$/, "").trim();
-        }
-
-        try {
-            const aiResponse = JSON.parse(aiRawText);
-            return NextResponse.json(aiResponse);
-        } catch (parseError) {
-            console.error("JSON Parse Error:", aiRawText);
-            return NextResponse.json({ isSearch: false, error: "Буруу форматтай хариу" });
-        }
+        const aiRawText = data.candidates[0].content.parts[0].text;
+        const aiResponse = JSON.parse(aiRawText);
+        
+        return NextResponse.json(aiResponse);
 
     } catch (error: any) {
-        console.error("API Route Error:", error);
+        console.error("AI API Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
