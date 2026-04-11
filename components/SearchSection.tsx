@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
-// Page.tsx-тэй зөрөхгүй байх интерфейс
 interface SearchSectionProps {
     onSearchResults: (data: any[]) => void;
     setLoadingState: (loading: boolean) => void;
@@ -31,12 +30,25 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
                 const scholarshipRef = collection(db, "scholarships");
                 let q = query(scholarshipRef);
                 
+                // 1. IELTS оноогоор шүүх
                 if (params.ielts) {
                     q = query(q, where("minIelts", "<=", params.ielts));
                 }
                 
+                // 2. Улсаар шүүх
                 if (params.country) {
                     q = query(q, where("country", "==", params.country));
+                }
+
+                // 3. ШИНЭ: Боловсролын зэргээр шүүх (Bachelor, Master, PhD)
+                if (params.degree) {
+                    q = query(q, where("degree", "==", params.degree));
+                }
+
+                // 4. ШИНЭ: Түлхүүр үгээр шүүх (Мэргэжил гэх мэт)
+                // Анхаар: Firebase "array-contains" эсвэл яг таг таарвал шүүнэ
+                if (params.keyword) {
+                    q = query(q, where("category", "==", params.keyword));
                 }
 
                 const querySnapshot = await getDocs(q);
@@ -46,6 +58,11 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
                 }));
                 
                 onSearchResults(data);
+
+                if (data.length === 0) {
+                    // Илэрц олдоогүй үед хэрэглэгчид мэдэгдэх
+                    console.log("No scholarships found matching these criteria.");
+                }
             }
         } catch (error) {
             console.error("Search Error:", error);
