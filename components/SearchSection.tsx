@@ -1,19 +1,25 @@
 "use client"
 import { useState } from 'react';
-import { db } from '@/lib/firebase'; // Өөрийн firebase-ийн замаа шалгаарай
+import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export default function SearchSection() {
-    const [userInput, setUserInput] = useState(""); // Хэрэглэгчийн бичиж буй текст
-    const [results, setResults] = useState<any[]>([]); // Хайлтын үр дүн
-    const [loading, setLoading] = useState(false);
+// Page.tsx-тэй зөрөхгүй байх интерфейс
+interface SearchSectionProps {
+    onSearchResults: (data: any[]) => void;
+    setLoadingState: (loading: boolean) => void;
+}
+
+export default function SearchSection({ onSearchResults, setLoadingState }: SearchSectionProps) {
+    const [userInput, setUserInput] = useState("");
+    const [isLocalLoading, setIsLocalLoading] = useState(false);
 
     const handleSmartSearch = async () => {
         if (!userInput.trim()) return;
         
-        setLoading(true);
+        setIsLocalLoading(true);
+        setLoadingState(true);
+        
         try {
-            // 1. AI-аас параметрүүдээ авна
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -21,19 +27,14 @@ export default function SearchSection() {
             });
             const params = await res.json();
 
-            console.log("AI-аас ирсэн шүүлтүүр:", params);
-
             if (params.isSearch) {
-                // 2. Firebase-ээс шүүх логик
                 const scholarshipRef = collection(db, "scholarships");
                 let q = query(scholarshipRef);
                 
-                // IELTS оноогоор шүүх
                 if (params.ielts) {
                     q = query(q, where("minIelts", "<=", params.ielts));
                 }
                 
-                // Улсаар шүүх
                 if (params.country) {
                     q = query(q, where("country", "==", params.country));
                 }
@@ -44,57 +45,32 @@ export default function SearchSection() {
                     ...doc.data() 
                 }));
                 
-                setResults(data);
-            } else {
-                alert("Хайлт олдсонгүй. Илүү тодорхой бичнэ үү.");
+                onSearchResults(data);
             }
         } catch (error) {
             console.error("Search Error:", error);
         } finally {
-            setLoading(false);
+            setIsLocalLoading(false);
+            setLoadingState(false);
         }
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <div className="flex flex-col md:flex-row gap-3 shadow-lg p-4 rounded-xl bg-white border">
-                <input 
-                    className="flex-1 p-3 outline-none border rounded-lg focus:ring-2 focus:ring-blue-400 text-gray-700"
-                    placeholder="Жишээ нь: Би IELTS 6-тай Солонгос явах тэтгэлэг хайж байна..."
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSmartSearch()}
-                />
-                <button 
-                    onClick={handleSmartSearch} 
-                    disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all disabled:bg-blue-300"
-                >
-                    {loading ? "Хайж байна..." : "Ухаалаг хайлт"}
-                </button>
-            </div>
-            
-            {/* Үр дүн харуулах хэсэг */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                {results.length > 0 ? (
-                    results.map((item) => (
-                        <div key={item.id} className="border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow bg-white">
-                            <h3 className="font-bold text-lg text-blue-800">{item.title || item.name}</h3>
-                            <p className="text-gray-600 mt-2">Улс: {item.country}</p>
-                            <p className="text-sm font-medium text-green-600">IELTS: {item.minIelts}+</p>
-                            <button className="mt-4 w-full bg-gray-100 py-2 rounded-lg hover:bg-gray-200 text-sm font-medium">
-                                Дэлгэрэнгүй
-                            </button>
-                        </div>
-                    ))
-                ) : (
-                    !loading && results.length === 0 && (
-                        <p className="text-center col-span-full text-gray-400 italic">
-                            Хайлт хийх өгүүлбэрээ дээр бичнэ үү.
-                        </p>
-                    )
-                )}
-            </div>
+        <div className="w-full max-w-3xl mx-auto flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-lg">
+            <input 
+                className="flex-1 bg-transparent border-none text-white placeholder:text-emerald-100/50 focus:outline-none px-4 py-2"
+                placeholder="Жишээ нь: Би IELTS 6-тай Солонгос явах тэтгэлэг хайж байна..."
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSmartSearch()}
+            />
+            <button 
+                onClick={handleSmartSearch} 
+                disabled={isLocalLoading}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-md px-6 py-2 uppercase text-[10px] tracking-widest font-bold transition-all disabled:opacity-50"
+            >
+                {isLocalLoading ? "..." : "Хайх"}
+            </button>
         </div>
     );
 }
