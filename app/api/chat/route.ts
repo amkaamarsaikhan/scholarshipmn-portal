@@ -11,9 +11,9 @@ export async function POST(req: Request) {
         const { messages } = await req.json();
         const lastMessage = messages[messages.length - 1].content;
 
-        // V1 ХАЯГ БОЛОН GEMINI-1.5-FLASH ХОСЛОЛ
+        // URL-ийг Gemini 2.5 Flash болгож өөрчлөв (AI Studio дээрх нэрээр нь)
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -26,7 +26,8 @@ export async function POST(req: Request) {
         const data = await response.json();
         
         if (data.error) {
-            console.error("Google API Error:", data.error);
+            console.error("Google API Error Details:", data.error);
+            // Хэрэв 2.5 бас олдохгүй бол 1.5-аар сорьж болох ч, одоохондоо 2.5-аар үзээрэй
             return NextResponse.json({ error: data.error.message }, { status: 500 });
         }
 
