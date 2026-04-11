@@ -1,7 +1,7 @@
 "use client";
 
 import { db } from "@/lib/firebase";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, Timestamp, serverTimestamp } from "firebase/firestore";
 import { useState, useEffect } from "react"; // useEffect нэмэв
 import { Database, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -3331,7 +3331,8 @@ export default function ImportPage() {
                     minGerman: item.minGerman ?? 0,
                     type: (item as { type?: string; category: string }).type ?? item.category ?? "Full Fund",
                     deadline: Timestamp.fromDate(new Date(item.deadline)),
-                    createdAt: Timestamp.now()
+                    createdAt: serverTimestamp(),
+                    lastViewedAt: serverTimestamp()
                 });
                 count++;
                 setProgress(Math.round((count / scholarshipsData.length) * 100));
