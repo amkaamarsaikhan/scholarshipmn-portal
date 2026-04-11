@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen, MessageSquare } from "lucide-react";
 import SearchSection from "@/components/SearchSection"; 
-import ScholarshipCard, { COUNTRY_FLAGS } from "@/components/scholarships/scholarshipCard";
+import ScholarshipCard, { flagForCountry } from "@/components/scholarships/scholarshipCard";
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
 
@@ -166,7 +166,7 @@ export default function Home() {
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all group ${selectedCountry === name ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-emerald-900 hover:bg-emerald-50'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-lg group-hover:scale-110 transition-transform">{COUNTRY_FLAGS[name] ?? "🌎"}</span>
+                        <span className="text-lg group-hover:scale-110 transition-transform">{flagForCountry(name)}</span>
                         <span className="font-medium">{name}</span>
                       </div>
                     </button>

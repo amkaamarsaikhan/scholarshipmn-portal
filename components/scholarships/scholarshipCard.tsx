@@ -9,24 +9,53 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import DeadlineTimer from "./DeadlineTimer";
 
-// Улсын далбааны жагсаалт (нүүр болон бусад хуудсуудад дахин ашиглана)
+// Улсын далбаа — Firestore `country` талбарын утга (импортын нэртэй яг тааруулна)
 export const COUNTRY_FLAGS: { [key: string]: string } = {
+    "Americas (Multi)": "🌎",
+    "Argentina": "🇦🇷",
     "Australia": "🇦🇺",
+    "Belgium": "🇧🇪",
+    "Brazil": "🇧🇷",
     "Canada": "🇨🇦",
+    "Chile": "🇨🇱",
     "China": "🇨🇳",
+    "Colombia": "🇨🇴",
+    "Costa Rica": "🇨🇷",
+    "Denmark": "🇩🇰",
+    "Europe (Multi-country)": "🇪🇺",
     "France": "🇫🇷",
     "Germany": "🇩🇪",
-    "Japan": "🇯🇵",
-    "South Korea": "🇰🇷",
-    "UK": "🇬🇧",
-    "USA": "🇺🇸",
     "Global": "🌎",
     "Hungary": "🇭🇺",
-    "Turkey": "🇹🇷",
+    "Hungary/Austria": "🇭🇺🇦🇹",
+    "India": "🇮🇳",
     "Italy": "🇮🇹",
-    "Taiwan": "🇹🇼",
+    "Japan": "🇯🇵",
+    "Malaysia": "🇲🇾",
+    "Mexico": "🇲🇽",
     "Netherlands": "🇳🇱",
+    "Panama": "🇵🇦",
+    "Peru": "🇵🇪",
+    "Poland": "🇵🇱",
+    "Russia": "🇷🇺",
+    "Singapore": "🇸🇬",
+    "South Korea": "🇰🇷",
+    "Southeast Asia (Multi)": "🌏",
+    "Sweden": "🇸🇪",
+    "Switzerland": "🇨🇭",
+    "Taiwan": "🇹🇼",
+    "Thailand": "🇹🇭",
+    "Turkey": "🇹🇷",
+    "UK": "🇬🇧",
+    "USA": "🇺🇸",
 };
+
+/** `country` талбарын утгаар далбаа — map-д байхгүй бол дэлхийн дүрс */
+export function flagForCountry(country: string | undefined | null): string {
+    const key = typeof country === "string" ? country.trim() : "";
+    if (!key) return "🌎";
+    return COUNTRY_FLAGS[key] ?? "🌎";
+}
 
 export interface Scholarship {
     id: string;
@@ -45,8 +74,7 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
     const { toggleSave, isSaved } = useAuth();
     const saved = isSaved(item.id);
 
-    // Улсын нэрээр далбааг олох
-    const flag = COUNTRY_FLAGS[item.country.trim()] || "🌎";
+    const flag = flagForCountry(item.country);
 
     return (
         <motion.div

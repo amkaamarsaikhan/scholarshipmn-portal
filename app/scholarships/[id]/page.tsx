@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { COUNTRY_FLAGS } from "@/components/scholarships/scholarshipCard";
+import { flagForCountry } from "@/components/scholarships/scholarshipCard";
 
 export default function ScholarshipDetailsPage() {
   const { id } = useParams();
@@ -128,8 +128,7 @@ export default function ScholarshipDetailsPage() {
   pushIfPositive("TOPIK", data.minTopik);
   pushIfPositive("JLPT", data.minJlpt);
 
-  const countryLabel = typeof data.country === "string" ? data.country.trim() : "";
-  const countryFlag = countryLabel ? (COUNTRY_FLAGS[countryLabel] ?? "🌎") : "🌎";
+  const countryFlag = flagForCountry(data.country);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
