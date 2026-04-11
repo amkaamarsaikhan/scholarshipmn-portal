@@ -9,8 +9,8 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import DeadlineTimer from "./DeadlineTimer";
 
-// Улсын далбааны жагсаалт
-const COUNTRY_FLAGS: { [key: string]: string } = {
+// Улсын далбааны жагсаалт (нүүр болон бусад хуудсуудад дахин ашиглана)
+export const COUNTRY_FLAGS: { [key: string]: string } = {
     "Australia": "🇦🇺",
     "Canada": "🇨🇦",
     "China": "🇨🇳",

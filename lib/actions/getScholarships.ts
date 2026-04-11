@@ -19,11 +19,9 @@ export const getScholarships = async (): Promise<Scholarship[]> => {
         title: String(data.title ?? "No title"),
         country: String(data.country ?? "Unknown"),
         image: data.image ?? "",
-        type: data.type ?? "Full Fund",
-        deadline:
-          data.deadline?.toDate?.() instanceof Date
-            ? data.deadline.toDate().toLocaleDateString()
-            : data.deadline ?? "",
+        type: data.type ?? data.category ?? "Full Fund",
+        // Timestamp хэвээр үлдээнэ — DeadlineTimer `seconds` эсвэл Date string уншина
+        deadline: data.deadline ?? "",
       };
     });
   } catch (error) {

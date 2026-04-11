@@ -13,21 +13,23 @@ export async function POST(req: Request) {
                 body: JSON.stringify({
                     contents: [{
                         parts: [{
-                            text: `Чи бол тэтгэлэг хайлтын ухаалаг туслах. Хэрэглэгчийн Монгол хэлээр бичсэн хүсэлтийг хайлтын параметрүүд рүү хөрвүүл.
+                            text: `Чи бол тэтгэлэг хайлтын ухаалаг туслах. Хэрэглэгчийн хүсэлтээс параметрүүдийг салгаж JSON буцаа.
 
                             ДҮРЭМ:
-                            1. Улсын нэрийг Англиар стандарт хэлбэрт оруул (Жишээ нь: Солонгос -> South Korea, АНУ/Америк -> USA, Япон -> Japan, Герман -> Germany, Канад -> Canada).
-                            2. IELTS эсвэл TOEFL-ийн оноог "ielts" гэдэг key-д тоогоор хадгал.
-                            3. Хэрэв хэрэглэгч боловсролын зэрэг (Бакалавр, Магистр, Доктор) хэлсэн бол "degree" key-д Англиар (Bachelor, Master, PhD) хадгал.
-                            4. "isSearch" утгыг хайлт хийх боломжтой үед л true болго.
-                            
-                            ХАРИУ ӨГӨХ ФОРМАТ (ЗӨВХӨН JSON):
+                            1. "country": Улсыг заавал Англиар (South Korea, USA, Australia, Japan, Germany г.м) буцаа.
+                            2. "ielts": IELTS-ийн оноог "ielts" key-д тоогоор хадгал.
+                            3. "gpa": Хэрэв хэрэглэгч GPA (голч оноо) хэлбэл "gpa" key-д тоогоор хадгал.
+                            4. "degree": Боловсролын зэргийг Англиар (Bachelor, Master, PhD) хадгал.
+                            5. "isSearch": Хайлт хийх боломжтой бол true.
+
+                            ХАРИУ ӨГӨХ ФОРМАТ:
                             {
                               "isSearch": true,
-                              "country": "South Korea" | "USA" | "Japan" | null,
+                              "country": string | null,
                               "ielts": number | null,
-                              "degree": "Bachelor" | "Master" | "PhD" | null,
-                              "keyword": "Мэргэжил эсвэл бусад түлхүүр үг" | null
+                              "gpa": number | null,
+                              "degree": string | null,
+                              "keyword": string | null
                             }
 
                             Хэрэглэгчийн өгүүлбэр: "${message}"`

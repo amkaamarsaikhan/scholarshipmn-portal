@@ -12,7 +12,6 @@ import {
   getDocs
 } from "firebase/firestore";
 import { sendTelegramNotification } from "@/lib/telegram";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -21,7 +20,7 @@ import {
   Clock,
   Globe2,
   GraduationCap,
-  Lightbulb,
+  Award,
   CheckCircle2,
   Building2
 } from 'lucide-react';
@@ -116,6 +115,19 @@ export default function ScholarshipDetailsPage() {
 
   const currentChecklist = data.checklist || ["OASIS Application", "Employer Support Letter", "Relevance Statement", "Transcripts"];
 
+  const eligibilityScores: { label: string; value: number }[] = [];
+  const n = (v: unknown) => (typeof v === "number" && !Number.isNaN(v) ? v : null);
+  const pushIfPositive = (label: string, raw: unknown) => {
+    const v = n(raw);
+    if (v !== null && v > 0) eligibilityScores.push({ label, value: v });
+  };
+  pushIfPositive("IELTS (доод)", data.minIelts);
+  pushIfPositive("GPA (доод)", data.minGpa);
+  pushIfPositive("TestDaF / Герман", data.minGerman);
+  pushIfPositive("HSK", data.minHsk);
+  pushIfPositive("TOPIK", data.minTopik);
+  pushIfPositive("JLPT", data.minJlpt);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
       <div className="max-w-7xl mx-auto px-6 pt-24">
@@ -139,13 +151,26 @@ export default function ScholarshipDetailsPage() {
                   <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
                     <Globe2 size={12} /> {data.country}
                   </Badge>
-                  <Badge className="bg-blue-50 text-blue-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
-                    <GraduationCap size={12} /> {data.level || data.category}
-                  </Badge>
+                  {(data.degree || data.level) && (
+                    <Badge className="bg-blue-50 text-blue-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
+                      <GraduationCap size={12} /> {data.degree || data.level}
+                    </Badge>
+                  )}
+                  {(data.category || data.type) && (
+                    <Badge className="bg-amber-50 text-amber-800 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
+                      <Award size={12} /> {data.category || data.type}
+                    </Badge>
+                  )}
                 </div>
                 <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
                   {data.title}
                 </h1>
+                {data.organization ? (
+                  <p className="text-slate-500 text-sm font-medium flex items-center gap-2">
+                    <Building2 size={16} className="text-emerald-600 shrink-0" />
+                    {data.organization}
+                  </p>
+                ) : null}
               </div>
               <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full flex items-center gap-2 text-xs font-black border border-emerald-100">
                 <Clock size={14} />
@@ -159,6 +184,23 @@ export default function ScholarshipDetailsPage() {
                 "{data.description}"
               </p>
             </div>
+
+            {(eligibilityScores.length > 0) && (
+              <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm mb-12">
+                <h3 className="text-xl font-bold text-slate-900 mb-6">Оноо, хэлний шаардлага</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {eligibilityScores.map(({ label, value }) => (
+                    <div
+                      key={label}
+                      className="rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3"
+                    >
+                      <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">{label}</p>
+                      <p className="text-lg font-black text-emerald-700 tabular-nums">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Requirements Section */}
             <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-sm mb-12">

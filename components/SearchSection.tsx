@@ -30,23 +30,27 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
                 const scholarshipRef = collection(db, "scholarships");
                 let q = query(scholarshipRef);
                 
-                // 1. IELTS оноогоор шүүх
+                // 1. IELTS оноогоор шүүх (Тоо мөн эсэхийг шалгана)
                 if (params.ielts) {
-                    q = query(q, where("minIelts", "<=", params.ielts));
+                    q = query(q, where("minIelts", "<=", Number(params.ielts)));
+                }
+
+                // 2. GPA оноогоор шүүх (ШИНЭ)
+                if (params.gpa) {
+                    q = query(q, where("minGpa", "<=", Number(params.gpa)));
                 }
                 
-                // 2. Улсаар шүүх
+                // 3. Улсаар шүүх
                 if (params.country) {
                     q = query(q, where("country", "==", params.country));
                 }
 
-                // 3. ШИНЭ: Боловсролын зэргээр шүүх (Bachelor, Master, PhD)
+                // 4. Боловсролын зэргээр шүүх (Bachelor, Master, PhD)
                 if (params.degree) {
                     q = query(q, where("degree", "==", params.degree));
                 }
 
-                // 4. ШИНЭ: Түлхүүр үгээр шүүх (Мэргэжил гэх мэт)
-                // Анхаар: Firebase "array-contains" эсвэл яг таг таарвал шүүнэ
+                // 5. Түлхүүр үгээр шүүх
                 if (params.keyword) {
                     q = query(q, where("category", "==", params.keyword));
                 }
@@ -60,8 +64,7 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
                 onSearchResults(data);
 
                 if (data.length === 0) {
-                    // Илэрц олдоогүй үед хэрэглэгчид мэдэгдэх
-                    console.log("No scholarships found matching these criteria.");
+                    console.log("Тохирох тэтгэлэг олдсонгүй.");
                 }
             }
         } catch (error) {

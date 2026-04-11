@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen, MessageSquare } from "lucide-react";
 import SearchSection from "@/components/SearchSection"; 
-import ScholarshipCard from "@/components/scholarships/scholarshipCard";
+import ScholarshipCard, { COUNTRY_FLAGS } from "@/components/scholarships/scholarshipCard";
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
 
@@ -14,15 +14,19 @@ const HERO_SLIDES = [
   { id: 2, title: "Дэлхийн боловсролыг", subtitle: "ЭНДЭЭС ОЛ.", image: "/hero2.png" },
 ];
 
-const COUNTRIES = [
-  { name: 'Australia', flag: '🇦🇺' }, { name: 'Canada', flag: '🇨🇦' }, { name: 'China', flag: '🇨🇳' },
-  { name: 'Germany', flag: '🇩🇪' }, { name: 'Japan', flag: '🇯🇵' }, { name: 'South Korea', flag: '🇰🇷' },
-  { name: 'USA', flag: '🇺🇸' }, { name: 'UK', flag: '🇬🇧' }, { name: 'Hungary', flag: '🇭🇺' }
-];
+function uniqueCountriesFromScholarships(items: { country?: string }[]): string[] {
+  const seen = new Set<string>();
+  for (const item of items) {
+    const c = typeof item.country === "string" ? item.country.trim() : "";
+    if (c) seen.add(c);
+  }
+  return [...seen].sort((a, b) => a.localeCompare(b));
+}
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
   const [scholarships, setScholarships] = useState<any[]>([]);
+  const [countryFilterOptions, setCountryFilterOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { savedItems, isSaved } = useAuth();
   const [showSavedOnly, setShowSavedOnly] = useState(false);
@@ -35,6 +39,7 @@ export default function Home() {
       try {
         const data = await getScholarships();
         setScholarships(data || []);
+        setCountryFilterOptions(uniqueCountriesFromScholarships(data || []));
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -63,6 +68,7 @@ export default function Home() {
     setLoading(true);
     const data = await getScholarships();
     setScholarships(data || []);
+    setCountryFilterOptions(uniqueCountriesFromScholarships(data || []));
     setLoading(false);
   };
 
@@ -143,18 +149,22 @@ export default function Home() {
             <div className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm max-h-[500px] flex flex-col">
               <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-4">Popular Countries</p>
               <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
-                {COUNTRIES.map((c) => (
-                  <button
-                    key={c.name}
-                    onClick={() => { setSelectedCountry(c.name); setShowSavedOnly(false); }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all group ${selectedCountry === c.name ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-emerald-900 hover:bg-emerald-50'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg group-hover:scale-110 transition-transform">{c.flag}</span>
-                      <span className="font-medium">{c.name}</span>
-                    </div>
-                  </button>
-                ))}
+                {countryFilterOptions.length === 0 ? (
+                  <p className="text-xs text-slate-400 px-2 py-2">Улсын жагсаалт ачааллаагүй байна.</p>
+                ) : (
+                  countryFilterOptions.map((name) => (
+                    <button
+                      key={name}
+                      onClick={() => { setSelectedCountry(name); setShowSavedOnly(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all group ${selectedCountry === name ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-emerald-900 hover:bg-emerald-50'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg group-hover:scale-110 transition-transform">{COUNTRY_FLAGS[name] ?? "🌎"}</span>
+                        <span className="font-medium">{name}</span>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           </div>
