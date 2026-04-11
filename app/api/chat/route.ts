@@ -16,20 +16,29 @@ export async function POST(req: Request) {
                             text: `Чи бол тэтгэлэг хайлтын ухаалаг туслах. Хэрэглэгчийн хүсэлтээс параметрүүдийг салгаж JSON буцаа.
 
                             ДҮРЭМ:
-                            1. "country": Улсыг заавал Англиар (South Korea, USA, Australia, Japan, Germany г.м) буцаа.
-                            2. "ielts": IELTS-ийн оноог "ielts" key-д тоогоор хадгал.
-                            3. "gpa": Хэрэв хэрэглэгч GPA (голч оноо) хэлбэл "gpa" key-д тоогоор хадгал.
-                            4. "degree": Боловсролын зэргийг Англиар (Bachelor, Master, PhD) хадгал.
-                            5. "isSearch": Хайлт хийх боломжтой бол true.
+                            1. "country": Улсыг заавал Англиар (South Korea, USA, Australia, Japan, Germany г.м) буцаа. Солонгос = South Korea.
+                            2. "ielts": IELTS оноо (жишээ 6.5) — "ielts" key-д тоогоор.
+                            3. "gpa": GPA/голч оноо — "gpa" key-д тоогоор.
+                            4. "degree": Bachelor, Master, PhD (Англиар).
+                            5. "topik": Солонгос хэлний TOPIK түвшин 1–6 (топик, TOPIK гэж бичсэн бол энд тоогоор).
+                            6. "german": Герман TestDaF TDN эсвэл түвшин тоогоор (жишээ 4).
+                            7. "hsk": Хятад HSK түвшин 1–6.
+                            8. "jlpt": Япон JLPT түвшин 1–5 (N1=5 гэх мэт эсвэл шууд тоо).
+                            9. "keyword": category-д таарах түлхүүр (Full эсвэл Partial) зөвхөн шаардлагатай бол.
+                            10. "isSearch": Тэтгэлэг хайх асуулт бол заавал true.
 
-                            ХАРИУ ӨГӨХ ФОРМАТ:
+                            ХАРИУ ӨГӨХ ФОРМАТ (null эсвэл тоо):
                             {
                               "isSearch": true,
                               "country": string | null,
                               "ielts": number | null,
                               "gpa": number | null,
                               "degree": string | null,
-                              "keyword": string | null
+                              "keyword": string | null,
+                              "topik": number | null,
+                              "german": number | null,
+                              "hsk": number | null,
+                              "jlpt": number | null
                             }
 
                             Хэрэглэгчийн өгүүлбэр: "${message}"`

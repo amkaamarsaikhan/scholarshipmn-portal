@@ -18,7 +18,6 @@ import {
   ArrowLeft,
   ExternalLink,
   Clock,
-  Globe2,
   GraduationCap,
   Award,
   CheckCircle2,
@@ -26,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { COUNTRY_FLAGS } from "@/components/scholarships/scholarshipCard";
 
 export default function ScholarshipDetailsPage() {
   const { id } = useParams();
@@ -128,6 +128,9 @@ export default function ScholarshipDetailsPage() {
   pushIfPositive("TOPIK", data.minTopik);
   pushIfPositive("JLPT", data.minJlpt);
 
+  const countryLabel = typeof data.country === "string" ? data.country.trim() : "";
+  const countryFlag = countryLabel ? (COUNTRY_FLAGS[countryLabel] ?? "🌎") : "🌎";
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
       <div className="max-w-7xl mx-auto px-6 pt-24">
@@ -143,13 +146,14 @@ export default function ScholarshipDetailsPage() {
           <div className="flex-1">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row items-start gap-6 mb-10">
-              <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-emerald-100 uppercase">
-                {data.country?.substring(0, 2)}
+              <div className="w-20 h-20 bg-white rounded-2xl border border-emerald-100 flex items-center justify-center text-5xl shadow-sm shadow-emerald-100 select-none" aria-hidden>
+                {countryFlag}
               </div>
               <div className="flex-1 space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">
-                    <Globe2 size={12} /> {data.country}
+                  <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1.5 items-center">
+                    <span className="text-base leading-none">{countryFlag}</span>
+                    <span>{data.country}</span>
                   </Badge>
                   {(data.degree || data.level) && (
                     <Badge className="bg-blue-50 text-blue-600 border-none font-bold px-3 py-1 rounded-lg flex gap-1 items-center">

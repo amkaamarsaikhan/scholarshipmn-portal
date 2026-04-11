@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen, MessageSquare } from "lucide-react";
@@ -66,10 +67,14 @@ export default function Home() {
     setSelectedCountry(null);
     setShowSavedOnly(false);
     setLoading(true);
-    const data = await getScholarships();
-    setScholarships(data || []);
-    setCountryFilterOptions(uniqueCountriesFromScholarships(data || []));
-    setLoading(false);
+    try {
+      const data = await getScholarships();
+      setScholarships(data || []);
+      setCountryFilterOptions(uniqueCountriesFromScholarships(data || []));
+    } finally {
+      setLoading(false);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -114,12 +119,14 @@ export default function Home() {
                 <LayoutGrid size={14} /> Main Menu
               </p>
               <div className="space-y-1">
-                <button
-                  onClick={() => { setSelectedCountry(null); setShowSavedOnly(false); }}
+                <Link
+                  href="/"
+                  scroll={false}
+                  onClick={() => void clearFilters()}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${(!selectedCountry && !showSavedOnly) ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
                 >
                   <Globe size={18} /> Бүх тэтгэлгүүд
-                </button>
+                </Link>
 
                 <button
                   onClick={() => { setShowSavedOnly(true); setSelectedCountry(null); }}

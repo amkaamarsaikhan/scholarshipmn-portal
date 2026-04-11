@@ -3,6 +3,29 @@ import { useState } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
+/** AI алдагдсан ч бичвэрээс TOPIK 1–6 олно */
+function parseTopikFromMessage(text: string): number | null {
+    const t = text.trim();
+    const patterns = [
+        /(?:topik|TOPIK|топик|Топик)[^0-9]{0,15}(\d)/iu,
+        /(\d)[^0-9]{0,10}(?:топик|topik)/iu,
+    ];
+    for (const re of patterns) {
+        const m = t.match(re);
+        if (m) {
+            const n = Number(m[1]);
+            if (n >= 1 && n <= 6) return n;
+        }
+    }
+    return null;
+}
+
+function asNumber(v: unknown): number | null {
+    if (typeof v === "number" && !Number.isNaN(v)) return v;
+    if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
+    return null;
+}
+
 interface SearchSectionProps {
     onSearchResults: (data: any[]) => void;
     setLoadingState: (loading: boolean) => void;
@@ -26,18 +49,37 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
             });
             const params = await res.json();
 
-            if (params.isSearch) {
+            const topikLevel = asNumber(params.topik) ?? parseTopikFromMessage(userInput);
+            const ielts = asNumber(params.ielts);
+            const gpa = asNumber(params.gpa);
+            const german = asNumber(params.german);
+            const hsk = asNumber(params.hsk);
+            const jlpt = asNumber(params.jlpt);
+
+            const hasAnyFilter =
+                params.isSearch === true ||
+                topikLevel != null ||
+                ielts != null ||
+                gpa != null ||
+                german != null ||
+                hsk != null ||
+                jlpt != null ||
+                Boolean(params.country) ||
+                Boolean(params.degree) ||
+                Boolean(params.keyword);
+
+            if (hasAnyFilter) {
                 const scholarshipRef = collection(db, "scholarships");
                 let q = query(scholarshipRef);
                 
-                // 1. IELTS оноогоор шүүх (Тоо мөн эсэхийг шалгана)
-                if (params.ielts) {
-                    q = query(q, where("minIelts", "<=", Number(params.ielts)));
+                // 1. IELTS — тэтгэлгийн minIelts нь хэрэглэгчийн онооноос доош эсвэл тэнцүү
+                if (ielts != null) {
+                    q = query(q, where("minIelts", "<=", ielts));
                 }
 
-                // 2. GPA оноогоор шүүх (ШИНЭ)
-                if (params.gpa) {
-                    q = query(q, where("minGpa", "<=", Number(params.gpa)));
+                // 2. GPA
+                if (gpa != null) {
+                    q = query(q, where("minGpa", "<=", gpa));
                 }
                 
                 // 3. Улсаар шүүх
@@ -53,6 +95,26 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
                 // 5. Түлхүүр үгээр шүүх
                 if (params.keyword) {
                     q = query(q, where("category", "==", params.keyword));
+                }
+
+                // 6. TOPIK
+                if (topikLevel != null) {
+                    q = query(q, where("minTopik", "<=", topikLevel));
+                }
+
+                // 7. TestDaF / Герман
+                if (german != null) {
+                    q = query(q, where("minGerman", "<=", german));
+                }
+
+                // 8. HSK
+                if (hsk != null) {
+                    q = query(q, where("minHsk", "<=", hsk));
+                }
+
+                // 9. JLPT
+                if (jlpt != null) {
+                    q = query(q, where("minJlpt", "<=", jlpt));
                 }
 
                 const querySnapshot = await getDocs(q);
