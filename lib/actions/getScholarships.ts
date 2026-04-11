@@ -6,7 +6,8 @@ export const getScholarships = async (): Promise<Scholarship[]> => {
   try {
     const q = query(
       collection(db, "scholarships"),
-      orderBy("createdAt", "desc")
+      // lastViewedAt талбараар хамгийн сүүлийнхийг (desc) эхэнд нь эрэмбэлнэ
+      orderBy("lastViewedAt", "desc")
     );
 
     const snapshot = await getDocs(q);
@@ -20,7 +21,7 @@ export const getScholarships = async (): Promise<Scholarship[]> => {
         country: String(data.country ?? "Unknown"),
         image: data.image ?? "",
         type: data.type ?? data.category ?? "Full Fund",
-        // Timestamp хэвээр үлдээнэ — DeadlineTimer `seconds` эсвэл Date string уншина
+        // Timestamp эсвэл String-ийг хэвээр үлдээнэ
         deadline: data.deadline ?? "",
       };
     });
