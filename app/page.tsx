@@ -165,10 +165,10 @@ export default function Home() {
           <div className="flex justify-between items-end mb-10">
             <div>
               <p className="text-emerald-600 font-bold text-[10px] uppercase tracking-[0.3em] mb-2">
-                {showSavedOnly ? "Таны хадгалсан" : selectedCountry ? `Шүүлтүүр: ${selectedCountry}` : "Хайлт"}
+                {showSavedOnly ? "Таны хадгалсан" : selectedCountry ? `Шүүлтүүр: ${selectedCountry}` : "Нийт"}
               </p>
               <h2 className="text-3xl font-serif italic text-emerald-950">
-                {showSavedOnly ? "Хадгалсан тэтгэлгүүд" : selectedCountry ? `${selectedCountry}-ийн тэтгэлгүүд` : "Илэрцүүд"}
+                {showSavedOnly ? "Хадгалсан тэтгэлгүүд" : selectedCountry ? `${selectedCountry}-ийн тэтгэлгүүд` : "Тэтгэлгүүд"}
               </h2>
             </div>
             {(selectedCountry || showSavedOnly) && (
