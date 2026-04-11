@@ -11,14 +11,14 @@ export async function POST(req: Request) {
         const { messages } = await req.json();
         const lastMessage = messages[messages.length - 1].content;
 
-        // МОДЕЛИЙГ GEMINI-PRO БОЛГОЖ ӨӨРЧЛӨВ
+        // V1 ХАЯГ БОЛОН GEMINI-1.5-FLASH ХОСЛОЛ
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Чи бол Scholarship MN-ийн туслах. Монголоор хариул. Асуулт: ${lastMessage}` }] }]
+                    contents: [{ parts: [{ text: lastMessage }] }]
                 })
             }
         );
@@ -26,11 +26,11 @@ export async function POST(req: Request) {
         const data = await response.json();
         
         if (data.error) {
-            console.error("Google Error:", data.error);
+            console.error("Google API Error:", data.error);
             return NextResponse.json({ error: data.error.message }, { status: 500 });
         }
 
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Уучлаарай, хариулт олдсонгүй.";
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Хариулт олдсонгүй.";
         return NextResponse.json({ content: aiText });
 
     } catch (error: any) {
