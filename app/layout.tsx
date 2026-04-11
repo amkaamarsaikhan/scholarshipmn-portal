@@ -5,7 +5,6 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next";
-import SearchSection from "@/components/SearchSection";
 
 // Font тохиргоо
 const inter = Inter({
@@ -35,10 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Navbar />
               </header>
               <main className="flex-1">
-                <section className="py-10">
-                  <h2 className="text-center text-2xl font-bold mb-6">Таны AI ухаалаг туслах</h2>
-                  <SearchSection />
-                </section>
                 {children}
               </main>
               <Footer />
