@@ -22,7 +22,7 @@ import {
 
 const SUPPORTED_COUNTRIES = [
     "Australia", "USA", "South Korea", "Japan", "Germany", 
-    "Canada", "Hungary", "China", "UK", "Russia", 
+    "Canada", "Hungary", "Ireland", "China", "UK", "Russia", 
     "IELTS", "TOPIK", "HSK", "JLPT", "German", "French", 
     "Математик", "Физик", "Нийгэм", "Эссэ бичих"
 ];

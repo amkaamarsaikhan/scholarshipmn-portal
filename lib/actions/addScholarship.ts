@@ -10,6 +10,11 @@ export async function addScholarship(formData: any) {
       ? formData.category
       : "Partial";
 
+    const n = (v: unknown, fallback = 0) => {
+      const x = typeof v === "number" ? v : Number(v);
+      return Number.isFinite(x) ? x : fallback;
+    };
+
     await addDoc(collection(db, "scholarships"), {
       title: formData.title,
       country: formData.country,
@@ -21,13 +26,15 @@ export async function addScholarship(formData: any) {
       link: formData.link ?? "",
       requirements: Array.isArray(formData.requirements) ? formData.requirements : [],
       checklist: Array.isArray(formData.checklist) ? formData.checklist : [],
-      minIelts: 0,
-      minGpa: 0,
-      minHsk: 0,
-      minTopik: 0,
-      minJlpt: 0,
-      minGerman: 0,
+      minIelts: n(formData.minIelts),
+      minGpa: n(formData.minGpa),
+      minHsk: n(formData.minHsk),
+      minTopik: n(formData.minTopik),
+      minJlpt: n(formData.minJlpt),
+      minGerman: n(formData.minGerman),
+      degree: typeof formData.degree === "string" ? formData.degree : "",
       createdAt: serverTimestamp(),
+      lastViewedAt: serverTimestamp(),
     });
 
     revalidatePath("/");

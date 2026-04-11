@@ -18,6 +18,7 @@ import {
   Plus,
   Trash2,
   Sparkles,
+  GraduationCap,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,13 @@ export default function AddScholarshipPage() {
       deadline: "",
       description: "",
       link: "",
+      minIelts: 0,
+      minGpa: 0,
+      minHsk: 0,
+      minTopik: 0,
+      minJlpt: 0,
+      minGerman: 0,
+      degree: "",
       requirements: [""],
       checklist: [""],
     },
@@ -133,31 +141,163 @@ export default function AddScholarshipPage() {
               <label className="text-xs font-bold text-slate-400">Улс</label>
 
               <Input {...register("country")} placeholder="Country" />
+              {errors.country && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.country.message}
+                </p>
+              )}
             </div>
           </div>
 
           {/* ORGANIZATION + CATEGORY + DEADLINE */}
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Input {...register("organization")} placeholder="Organization" />
+            <div>
+              <label className="text-xs font-bold text-slate-400">
+                Байгууллага
+              </label>
+              <Input {...register("organization")} placeholder="Organization" />
+            </div>
 
-            <select
-              {...register("category")}
-              className="h-10 border rounded-lg px-3"
-            >
-              <option value="Partial">Partial</option>
-              <option value="Full">Full</option>
-            </select>
+            <div>
+              <label className="text-xs font-bold text-slate-400">
+                Ангилал (category)
+              </label>
+              <select
+                {...register("category")}
+                className="h-10 w-full border rounded-lg px-3"
+              >
+                <option value="Partial">Partial</option>
+                <option value="Full">Full</option>
+              </select>
+            </div>
 
-            <Input type="date" {...register("deadline")} />
+            <div>
+              <label className="text-xs font-bold text-slate-400">
+                Эцсийн хугацаа
+              </label>
+              <Input type="date" {...register("deadline")} />
+              {errors.deadline && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.deadline.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* DEGREE + SCORES — import болон AI хайлтын query-тай ижил талбарууд */}
+
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 font-bold text-slate-500">
+              <GraduationCap size={16} /> Боловсрол, оноо, хэлний доод шаардлага
+            </label>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <label className="text-xs font-bold text-slate-400">
+                  Зэрэг (degree)
+                </label>
+                <select
+                  {...register("degree")}
+                  className="h-10 w-full border rounded-lg px-3 mt-1"
+                >
+                  <option value="">— Сонгох —</option>
+                  <option value="Bachelor">Bachelor</option>
+                  <option value="Master">Master</option>
+                  <option value="PhD">PhD</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-400">
+                  minIelts (0 = шаардлагагүй)
+                </label>
+                <Input
+                  type="number"
+                  step="0.5"
+                  min={0}
+                  max={9}
+                  {...register("minIelts")}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-400">
+                  minGpa (0 = шаардлагагүй)
+                </label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min={0}
+                  max={4}
+                  {...register("minGpa")}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div>
+                <label className="text-xs font-bold text-slate-400">
+                  minHsk
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={6}
+                  {...register("minHsk")}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-400">
+                  minTopik
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={6}
+                  {...register("minTopik")}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-400">
+                  minJlpt (1–5)
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={5}
+                  {...register("minJlpt")}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-400">
+                  minGerman (TestDaF)
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={20}
+                  {...register("minGerman")}
+                />
+              </div>
+            </div>
           </div>
 
           {/* DESCRIPTION */}
 
-          <Textarea
-            {...register("description")}
-            placeholder="Тэтгэлгийн дэлгэрэнгүй тайлбар"
-          />
+          <div>
+            <label className="text-xs font-bold text-slate-400">
+              Тайлбар (description)
+            </label>
+            <Textarea
+              {...register("description")}
+              placeholder="Тэтгэлгийн дэлгэрэнгүй тайлбар"
+              className="mt-1"
+            />
+            {errors.description && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
 
           {/* REQUIREMENTS */}
 
@@ -230,6 +370,9 @@ export default function AddScholarshipPage() {
             </label>
 
             <Input {...register("link")} placeholder="https://example.com" />
+            {errors.link && (
+              <p className="text-red-500 text-xs mt-1">{errors.link.message}</p>
+            )}
           </div>
 
           {/* SUBMIT */}

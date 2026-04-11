@@ -29,6 +29,7 @@ export const COUNTRY_FLAGS: { [key: string]: string } = {
     "Hungary": "🇭🇺",
     "Hungary/Austria": "🇭🇺🇦🇹",
     "India": "🇮🇳",
+    "Ireland": "🇮🇪",
     "Italy": "🇮🇹",
     "Japan": "🇯🇵",
     "Malaysia": "🇲🇾",
