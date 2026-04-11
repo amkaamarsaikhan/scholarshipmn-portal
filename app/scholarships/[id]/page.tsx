@@ -9,7 +9,8 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  serverTimestamp // 🔥 1. Энийг нэмсэн: Цагийг серверээс авахад хэрэгтэй
 } from "firebase/firestore";
 import { sendTelegramNotification } from "@/lib/telegram";
 import { useAuth } from "@/context/AuthContext";
@@ -32,7 +33,7 @@ export default function ScholarshipDetailsPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [data, setData] = useState<any>(null);
-  const [partners, setPartners] = useState<any[]>([]); // Зуучлагч компаниудын state
+  const [partners, setPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState<number[]>([]);
 
@@ -48,7 +49,13 @@ export default function ScholarshipDetailsPage() {
           const scholarshipData = docSnap.data();
           setData(scholarshipData);
 
-          // 2. Улсаар нь шүүж зуучлагч компаниудыг татах
+          // 🔥 2. ШИНЭ ЛОГИК: Хүн орж үзэх болгонд 'lastViewedAt' талбарыг шинэчилнэ
+          // Ингэснээр Home хуудас дээрх orderBy("lastViewedAt", "desc") зөв ажиллана
+          await updateDoc(docRef, {
+            lastViewedAt: serverTimestamp()
+          });
+
+          // 3. Улсаар нь шүүж зуучлагч компаниудыг татах
           if (scholarshipData.country) {
             const partnersRef = collection(db, "partners");
             const q = query(
@@ -218,7 +225,7 @@ export default function ScholarshipDetailsPage() {
               </div>
             </div>
 
-            {/* 🔥 NEW: Partners/SaaS Section */}
+            {/* Partners Section */}
             {partners.length > 0 && (
               <div className="bg-emerald-50/50 border border-emerald-100 rounded-[2.5rem] p-10">
                 <div className="flex items-center gap-3 mb-8">
