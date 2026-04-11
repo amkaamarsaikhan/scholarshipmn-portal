@@ -5,7 +5,7 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next";
-import AIChatBot from "@/components/AIChatBot";
+import SearchSection from "@/components/SearchSection";
 
 // Font тохиргоо
 const inter = Inter({
@@ -33,8 +33,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex-1 flex flex-col min-w-0">
               <header className="sticky top-0 z-30 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
                 <Navbar />
+                <section className="py-10">
+                  <h2 className="text-center text-2xl font-bold mb-6">Таны AI ухаалаг туслах</h2>
+                  <SearchSection />
+                </section>
               </header>
-              <AIChatBot />
               <main className="flex-1">
                 {children}
               </main>
@@ -42,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </AuthProvider>
-        <Analytics /> 
+        <Analytics />
       </body>
     </html>
   );
