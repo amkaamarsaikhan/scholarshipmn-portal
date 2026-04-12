@@ -20,4 +20,19 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app); // 2. Storage-ийг эхлүүлээд export хийх
 
+let analyticsInstance: import("firebase/analytics").Analytics | null | undefined;
+
+/** Зөвхөн browser-д ажиллана. SSR-д analytics дуудагдахгүй. */
+export async function getFirebaseAnalytics() {
+  if (typeof window === "undefined") return null;
+  if (analyticsInstance !== undefined) return analyticsInstance;
+  const { getAnalytics, isSupported } = await import("firebase/analytics");
+  if (!(await isSupported())) {
+    analyticsInstance = null;
+    return null;
+  }
+  analyticsInstance = getAnalytics(app);
+  return analyticsInstance;
+}
+
 export default app;

@@ -12,7 +12,8 @@ import {
   doc, 
   updateDoc, 
   deleteDoc,
-  orderBy 
+  orderBy,
+  where,
 } from "firebase/firestore";
 import { sendTelegramNotification } from "@/lib/telegram"; 
 import {
@@ -30,15 +31,24 @@ import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, User, CheckCircle, Clock, 
   GraduationCap, Sparkles, Building2, CheckCircle2, 
-  XCircle, Trash2, ExternalLink, ShieldCheck 
+  XCircle, Trash2, ExternalLink, ShieldCheck, Mail, Send, Loader2
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]); // Партнерүүд хадгалах
   const [loading, setLoading] = useState(true);
-  
-  const [sending, setSending] = useState(false);
+
+  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [newsletterTitle, setNewsletterTitle] = useState("");
+  const [newsletterCountry, setNewsletterCountry] = useState("");
+  const [newsletterLink, setNewsletterLink] = useState("");
+  const [newsletterDescription, setNewsletterDescription] = useState("");
+  const [newsletterSending, setNewsletterSending] = useState(false);
+  const [newsletterMessage, setNewsletterMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
     // Хэрэглэгчдийг татах
@@ -54,7 +64,12 @@ export default function AdminDashboard() {
       setLoading(false);
     });
 
-    return () => { unsubUsers(); unsubPartners(); };
+    const subQuery = query(collection(db, "subscribers"), where("status", "==", "active"));
+    const unsubSubs = onSnapshot(subQuery, (snapshot) => {
+      setSubscriberCount(snapshot.size);
+    });
+
+    return () => { unsubUsers(); unsubPartners(); unsubSubs(); };
   }, []);
 
   // Партнер баталгаажуулах функц
@@ -75,6 +90,54 @@ export default function AdminDashboard() {
     }
   };
 
+  const sendNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewsletterMessage(null);
+    const title = newsletterTitle.trim();
+    const country = newsletterCountry.trim();
+    const link = newsletterLink.trim();
+    const description = newsletterDescription.trim();
+    if (!title || !country || !link || !description) {
+      setNewsletterMessage({ type: "err", text: "Бүх талбарыг бөглөнө үү." });
+      return;
+    }
+    setNewsletterSending(true);
+    try {
+      const res = await fetch("/api/send-newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, country, link, description }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setNewsletterMessage({
+          type: "err",
+          text: typeof data.error === "string" ? data.error : "Илгээхэд алдаа гарлаа.",
+        });
+        return;
+      }
+      if (data.message === "No subscribers found") {
+        setNewsletterMessage({
+          type: "ok",
+          text: "Идэвхтэй захиалагч алга (footer-оос бүртгүүлсэн хэрэглэгч байхгүй).",
+        });
+        return;
+      }
+      setNewsletterMessage({
+        type: "ok",
+        text: `Мэдэгдэл илгээгдлээ (${subscriberCount} хаяг руу BCC).`,
+      });
+      setNewsletterTitle("");
+      setNewsletterCountry("");
+      setNewsletterLink("");
+      setNewsletterDescription("");
+    } catch {
+      setNewsletterMessage({ type: "err", text: "Сүлжээний алдаа." });
+    } finally {
+      setNewsletterSending(false);
+    }
+  };
+
   if (loading) return <div className="h-screen flex items-center justify-center font-black uppercase tracking-widest text-emerald-900 italic">Ачааллаж байна...</div>;
 
   return (
@@ -88,6 +151,110 @@ export default function AdminDashboard() {
           </Badge>
           <h1 className="text-6xl font-black text-slate-900 tracking-tight italic uppercase">Control Panel</h1>
         </div>
+
+        {/* --- NEWSLETTER: footer-ийн «Мэдээлэл авах» бүртгүүлэгчдэд илгээх --- */}
+        <Card className="rounded-[2.5rem] border-none shadow-2xl bg-white overflow-hidden max-w-3xl mx-auto">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+                <Mail size={24} />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-black italic uppercase tracking-tight">
+                  Мэдээллийн санд илгээх
+                </CardTitle>
+                <CardDescription className="font-bold text-slate-500">
+                  Footer-оос &quot;Мэдээлэл авах&quot;-аар бүртгүүлсэн идэвхтэй имэйлүүд руу (Firebase{" "}
+                  <code className="text-xs bg-slate-100 px-1 rounded">subscribers</code>) Zoho-оор мэдэгдэл явуулна.
+                </CardDescription>
+              </div>
+            </div>
+            <p className="text-sm font-black text-emerald-700 mt-2">
+              Идэвхтэй захиалагч: <span className="tabular-nums">{subscriberCount}</span>
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={sendNewsletter} className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="nl-title">Гарчиг</Label>
+                <Input
+                  id="nl-title"
+                  value={newsletterTitle}
+                  onChange={(e) => setNewsletterTitle(e.target.value)}
+                  placeholder="Тэтгэлгийн нэр"
+                  className="rounded-xl"
+                  disabled={newsletterSending}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="nl-country">Улс</Label>
+                <Input
+                  id="nl-country"
+                  value={newsletterCountry}
+                  onChange={(e) => setNewsletterCountry(e.target.value)}
+                  placeholder="Жишээ: Япон"
+                  className="rounded-xl"
+                  disabled={newsletterSending}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="nl-link">Холбоос</Label>
+                <Input
+                  id="nl-link"
+                  type="url"
+                  value={newsletterLink}
+                  onChange={(e) => setNewsletterLink(e.target.value)}
+                  placeholder="https://..."
+                  className="rounded-xl"
+                  disabled={newsletterSending}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="nl-desc">Тайлбар</Label>
+                <Textarea
+                  id="nl-desc"
+                  value={newsletterDescription}
+                  onChange={(e) => setNewsletterDescription(e.target.value)}
+                  placeholder="Товч танилцуулга"
+                  rows={4}
+                  className="rounded-xl resize-y min-h-[100px]"
+                  disabled={newsletterSending}
+                />
+              </div>
+              {newsletterMessage && (
+                <p
+                  className={`text-sm font-bold ${
+                    newsletterMessage.type === "ok" ? "text-emerald-700" : "text-red-600"
+                  }`}
+                >
+                  {newsletterMessage.text}
+                </p>
+              )}
+              <Button
+                type="submit"
+                disabled={newsletterSending || subscriberCount === 0}
+                className="w-full sm:w-auto h-12 rounded-2xl font-black italic uppercase bg-emerald-600 hover:bg-emerald-700"
+              >
+                {newsletterSending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Илгээж байна...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Бүх захиалагчид илгээх
+                  </>
+                )}
+              </Button>
+              {subscriberCount === 0 && (
+                <p className="text-xs text-amber-700 font-bold">
+                  Одоогоор идэвхтэй имэйл алга. Эхлээд хэрэглэгчид footer-оос бүртгүүлнэ үү.
+                </p>
+              )}
+            </form>
+          </CardContent>
+        </Card>
 
         {/* --- PARTNERS SECTION (ШИНЭ) --- */}
         <div className="space-y-8">

@@ -1,16 +1,33 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { db } from "@/lib/firebase-admin"; // server-side firebase-admin ашиглахыг зөвлөж байна
+import { getAdminDb } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
     try {
+        const db = getAdminDb();
+        if (!db) {
+            return NextResponse.json(
+                {
+                    error:
+                        "Firebase Admin тохируулаагүй байна. FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY шалгана уу.",
+                },
+                { status: 503 }
+            );
+        }
+
+        const zohoUser = process.env.ZOHO_EMAIL?.trim();
+        const zohoPass = process.env.ZOHO_PASSWORD;
+        if (!zohoUser || !zohoPass) {
+            return NextResponse.json(
+                { error: "Имэйл (SMTP) тохируулаагүй байна. ZOHO_EMAIL, ZOHO_PASSWORD шалгана уу." },
+                { status: 503 }
+            );
+        }
+
         const { title, description, link, country } = await req.json();
 
-        // 1. Firebase-ээс "active" төлөвтэй бүх имэйлүүдийг авах
-        // Жич: Хэрэв firebase-admin тохируулаагүй бол client-side-аас имэйлүүдээ дамжуулж болно.
-        // Энд admin sdk ашигласан жишээ харуулав:
         const snapshot = await db.collection("subscribers").where("status", "==", "active").get();
         const recipientEmails = snapshot.docs.map(doc => doc.data().email);
 
@@ -23,15 +40,14 @@ export async function POST(req: Request) {
             port: 465,
             secure: true,
             auth: {
-                user: process.env.ZOHO_EMAIL,
-                pass: process.env.ZOHO_PASSWORD,
+                user: zohoUser,
+                pass: zohoPass,
             },
         });
 
-        // 2. Имэйл илгээх (BCC ашиглах нь олон хүнд зэрэг илгээхэд тохиромжтой)
         await transporter.sendMail({
-            from: `"Scholarship MN" <${process.env.ZOHO_EMAIL}>`,
-            to: process.env.ZOHO_EMAIL, // Өөрөөсөө
+            from: `"Scholarship MN" <${zohoUser}>`,
+            to: zohoUser,
             bcc: recipientEmails.join(", "), // Бүх бүртгүүлэгчид рүү нууцаар илгээнэ
             subject: `📢 ШИНЭ ТЭТГЭЛЭГ: ${title}`,
             html: `

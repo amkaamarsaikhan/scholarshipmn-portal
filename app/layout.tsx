@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next";
+import { FirebaseAnalytics } from "@/components/FirebaseAnalytics";
 
 // Font тохиргоо
 const inter = Inter({
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </AuthProvider>
         <Analytics />
+        <FirebaseAnalytics />
       </body>
     </html>
   );
