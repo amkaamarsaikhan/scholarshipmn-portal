@@ -16,7 +16,7 @@ const AboutPage = () => {
     const stats = [
         { label: "Нийт тэтгэлэг", value: "180+", icon: Award },
         { label: "Амжилттай суралцагчид", value: "100+", icon: GraduationCap },
-        { label: "Хамтрагч их байгууллагууд", value: "20+", icon: Globe2 },
+        { label: "Хамтрагч байгууллагууд", value: "20+", icon: Globe2 },
         { label: "Мэргэжлийн менторууд", value: "40+", icon: Users },
     ];
 
