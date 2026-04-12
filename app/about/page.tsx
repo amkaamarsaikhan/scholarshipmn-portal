@@ -14,10 +14,10 @@ import Link from 'next/link';
 
 const AboutPage = () => {
     const stats = [
-        { label: "Нийт тэтгэлэг", value: "500+", icon: Award },
-        { label: "Амжилттай суралцагчид", value: "1,200+", icon: GraduationCap },
-        { label: "Хамтрагч их сургуулиуд", value: "50+", icon: Globe2 },
-        { label: "Мэргэжлийн менторууд", value: "30+", icon: Users },
+        { label: "Нийт тэтгэлэг", value: "180+", icon: Award },
+        { label: "Амжилттай суралцагчид", value: "100+", icon: GraduationCap },
+        { label: "Хамтрагч их байгууллагууд", value: "20+", icon: Globe2 },
+        { label: "Мэргэжлийн менторууд", value: "40+", icon: Users },
     ];
 
     return (

@@ -212,7 +212,7 @@ export default function CoursesPage() {
                         <Link href="/partners/register" className="bg-white text-emerald-950 px-12 py-5 rounded-2xl font-black hover:bg-emerald-50 transition-all inline-block w-full text-lg uppercase italic tracking-tighter shadow-xl">
                             ПАРТНЕР БОЛОХ
                         </Link>
-                        <p className="text-[10px] mt-4 text-emerald-200 font-black uppercase tracking-[0.3em] opacity-60">Холбогдох: 99046671</p>
+                        <p className="text-[10px] mt-4 text-emerald-200 font-black uppercase tracking-[0.3em] opacity-60">Холбогдох: 96969060</p>
                     </div>
                 </div>
             </section>
