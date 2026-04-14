@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen, MessageSquare } from "lucide-react";
+import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen, MessageSquare, CalendarCheck } from "lucide-react";
 import SearchSection from "@/components/SearchSection"; 
 import ScholarshipCard, { flagForCountry } from "@/components/scholarships/scholarshipCard";
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
+import { isScholarshipDeadlineOpen } from "@/lib/scholarshipDeadline";
 
 const HERO_SLIDES = [
   { id: 1, title: "Ирээдүйнхээ гүүрийг", subtitle: "ӨНӨӨДӨР БҮТЭЭ.", image: "/hero1.png" },
@@ -75,6 +76,8 @@ export default function Home() {
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<HomeCategoryFilter | null>(null);
+  /** Зөвхөн дуусах хугацаа нь ирээдүйд байгаа (эсвэл хугацаа бичигдээгүй) тэтгэлгүүд */
+  const [openDeadlineOnly, setOpenDeadlineOnly] = useState(false);
 
   // Анхны өгөгдлөө татах
   useEffect(() => {
@@ -104,12 +107,14 @@ export default function Home() {
     const matchesSaved = showSavedOnly ? isSaved(item.id) : true;
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
     const matchesCat = matchesHomeCategoryFilter(item, selectedCategory);
-    return matchesSaved && matchesCountry && matchesCat;
+    const matchesDeadline = !openDeadlineOnly || isScholarshipDeadlineOpen(item.deadline);
+    return matchesSaved && matchesCountry && matchesCat && matchesDeadline;
   });
 
   const clearFilters = async () => {
     setSelectedCountry(null);
     setSelectedCategory(null);
+    setOpenDeadlineOnly(false);
     setShowSavedOnly(false);
     setLoading(true);
     try {
@@ -168,7 +173,7 @@ export default function Home() {
                   href="/"
                   scroll={false}
                   onClick={() => void clearFilters()}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${(!selectedCountry && !showSavedOnly && !selectedCategory) ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${(!selectedCountry && !showSavedOnly && !selectedCategory && !openDeadlineOnly) ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
                 >
                   <Globe size={18} /> Бүх тэтгэлгүүд
                 </Link>
@@ -230,8 +235,12 @@ export default function Home() {
               <p className="text-emerald-600 font-bold text-[10px] uppercase tracking-[0.3em] mb-2">
                 {showSavedOnly
                   ? "Таны хадгалсан"
-                  : selectedCountry || selectedCategory
-                    ? `Шүүлтүүр: ${[selectedCountry, selectedCategory ? CATEGORY_FILTER_BUTTONS.find((b) => b.id === selectedCategory)?.label : null].filter(Boolean).join(" · ")}`
+                  : selectedCountry || selectedCategory || openDeadlineOnly
+                    ? `Шүүлтүүр: ${[
+                        selectedCountry,
+                        selectedCategory ? CATEGORY_FILTER_BUTTONS.find((b) => b.id === selectedCategory)?.label : null,
+                        openDeadlineOnly ? "Идэвхтэй (Active)" : null,
+                      ].filter(Boolean).join(" · ")}`
                     : "Нийт"}
               </p>
               <h2 className="text-3xl font-serif italic text-emerald-950">
@@ -246,7 +255,7 @@ export default function Home() {
                         : "Тэтгэлгүүд"}
               </h2>
             </div>
-            {(selectedCountry || showSavedOnly || selectedCategory) && (
+            {(selectedCountry || showSavedOnly || selectedCategory || openDeadlineOnly) && (
               <button onClick={clearFilters} className="text-xs text-emerald-600 flex items-center gap-1 hover:underline font-bold uppercase tracking-tighter shrink-0">
                 <X size={14} /> Арилгах
               </button>
@@ -272,6 +281,26 @@ export default function Home() {
                 {label}
               </button>
             ))}
+          </div>
+
+          <div className="mb-10 flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-full sm:w-auto sm:mr-2">Статус</span>
+            <button
+              type="button"
+              title="Зөвхөн дуусах хугацаа нь өнөөдрөөс хойш (эсвэл хугацаа заагаагүй) тэтгэлэг — идэвхтэй нээлттэй тэтгэлэг"
+              onClick={() => {
+                setShowSavedOnly(false);
+                setOpenDeadlineOnly((v) => !v);
+              }}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border transition-all ${
+                openDeadlineOnly
+                  ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                  : "bg-white text-emerald-900 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50/80"
+              }`}
+            >
+              <CalendarCheck size={14} />
+              <span>Идэвхтэй · Active</span>
+            </button>
           </div>
 
           {loading ? (

@@ -15,12 +15,16 @@ export const getScholarships = async (): Promise<Scholarship[]> => {
     return snapshot.docs.map((doc) => {
       const data = doc.data();
 
+      const categoryRaw = data.category ?? data.type ?? "";
       return {
         id: doc.id,
         title: String(data.title ?? "No title"),
         country: String(data.country ?? "Unknown"),
         image: data.image ?? "",
         type: data.type ?? data.category ?? "Full Fund",
+        category: typeof categoryRaw === "string" ? categoryRaw : String(categoryRaw ?? ""),
+        degree: data.degree != null ? String(data.degree) : "",
+        level: data.level != null ? String(data.level) : "",
         // Timestamp эсвэл String-ийг хэвээр үлдээнэ
         deadline: data.deadline ?? "",
       };

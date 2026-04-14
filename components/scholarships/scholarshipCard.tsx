@@ -64,6 +64,9 @@ export interface Scholarship {
     country: string;
     image?: string;
     type?: string;
+    category?: string;
+    degree?: string;
+    level?: string;
     deadline?: any; // Firebase Timestamp эсвэл String байж болно
 }
 
