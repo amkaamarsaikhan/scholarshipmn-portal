@@ -7,130 +7,237 @@ import { Database, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
 
 const scholarshipsData = [
   {
-    title: "University of Galway Global Achievement Scholarship",
-    country: "Ireland",
-    organization: "University of Galway",
-    category: "Partial",
-    deadline: "2026-05-31",
-    link: "https://www.universityofgalway.ie/international-students/feesandfunding/scholarships/",
-    description: "Академик өндөр амжилттай олон улсын оюутнуудад зориулж сургалтын төлбөрөөс €2,000-аас €5,000 хүртэлх хөнгөлөлт үзүүлдэг.",
-    minIelts: 6.5,
-    minGpa: 3.0,
-    minHsk: 0,
-    minTopik: 0,
-    minJlpt: 0,
-    minGerman: 0,
-    degree: "Bachelor / Master",
-    requirements: [
-      "Acceptance of an offer for an eligible program",
-      "High academic standards",
-      "Personal statement"
+    "title": "DSU Regional Scholarship (Tuscany Region)",
+    "country": "Italy",
+    "organization": "Azienda DSU Toscana",
+    "category": "Full",
+    "deadline": "2026-09-01",
+    "link": "https://www.dsu.toscana.it/",
+    "description": "Сургалтын төлбөрөөс бүрэн чөлөөлөхөөс гадна үнэгүй байр, хоол болон жилд 6000+ еврогийн тэтгэмж олгоно. Гэр бүлийн орлого дээр суурилдаг.",
+    "minIelts": 6.0,
+    "minGpa": 2.5,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Bachelor / Master / PhD",
+    "requirements": [
+      "Family Income Certificate (ISEE Parificato)",
+      "University enrollment in Tuscany region",
+      "No previous degree at the same level"
     ],
-    checklist: [
-      "Letter of Acceptance",
-      "Academic Transcripts",
-      "Scholarship Statement"
+    "checklist": [
+      "ISEE-U calculation document",
+      "Passport and Visa",
+      "Family Composition Certificate"
     ]
   },
   {
-    title: "DCU International Merit Scholarship",
-    country: "Ireland",
-    organization: "Dublin City University",
-    category: "Partial",
-    deadline: "2026-06-15",
-    link: "https://www.dcu.ie/international/international-scholarships",
-    description: "Dublin City University-д суралцах хүсэлтэй, өмнөх шатны боловсролын гүйцэтгэл өндөр оюутнуудад олгодог сургалтын төлбөрийн хөнгөлөлт.",
-    minIelts: 6.5,
-    minGpa: 3.3,
-    minHsk: 0,
-    minTopik: 0,
-    minJlpt: 0,
-    minGerman: 0,
-    degree: "Bachelor / Master",
-    requirements: [
-      "First-time applicant to DCU",
-      "Proof of high academic achievement",
-      "Full offer from DCU"
+    "title": "Invest Your Talent in Italy (IYT)",
+    "country": "Italy",
+    "organization": "Ministry of Foreign Affairs",
+    "category": "Full",
+    "deadline": "2026-03-01",
+    "link": "https://investyourtalentitaly.esteri.it/",
+    "description": "Инженер, архитектур, дизайн, эдийн засгийн чиглэлээр суралцах оюутнуудад зориулсан засгийн газрын тэтгэлэг. Дадлага хийх боломжоор хангана.",
+    "minIelts": 6.5,
+    "minGpa": 3.0,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Master",
+    "requirements": [
+      "Citizen of Mongolia",
+      "Age under 26 at the time of application",
+      "Strong academic background"
     ],
-    checklist: [
-      "DCU Offer Letter",
-      "CV",
-      "Academic Certificates"
+    "checklist": [
+      "Video Essay (Max 1 minute)",
+      "University Admission Letter",
+      "Academic Transcripts"
     ]
   },
   {
-    title: "UCC Excellence Scholarships",
-    country: "Ireland",
-    organization: "University College Cork",
-    category: "Partial",
-    deadline: "2026-05-01",
-    link: "https://www.ucc.ie/en/international/studyatucc/scholarshipsandfunding/",
-    description: "UCC-ийн сургууль бүрээс (Бизнес, Хууль, Технологи) олгодог, олон улсын шилдэг оюутнуудыг дэмжих €5,000 хүртэлх тэтгэлэг.",
-    minIelts: 6.5,
-    minGpa: 3.5,
-    minHsk: 0,
-    minTopik: 0,
-    minJlpt: 0,
-    minGerman: 0,
-    degree: "Master",
-    requirements: [
-      "Exceptional academic record",
-      "Applied to an eligible postgraduate program at UCC"
+    "title": "MAECI Scholarships for International Students",
+    "country": "Italy",
+    "organization": "Ministry of Foreign Affairs and International Cooperation",
+    "category": "Full",
+    "deadline": "2026-06-15",
+    "link": "https://studyinitaly.esteri.it/",
+    "description": "Италийн Засгийн газраас гадаадын оюутнуудад олгодог 9 сарын хугацаатай сургалтын төлбөр болон амьжиргааны тэтгэлэг.",
+    "minIelts": 6.0,
+    "minGpa": 2.8,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Master / PhD",
+    "requirements": [
+      "Admission to an Italian University",
+      "Age limit (usually under 28 for Master)",
+      "Language proficiency in English or Italian"
     ],
-    checklist: [
-      "Proof of Application",
-      "Academic Reference",
-      "Research Proposal (if applicable)"
+    "checklist": [
+      "Curriculum Vitae (CV)",
+      "Final Academic Certificate",
+      "Letter of Motivation"
     ]
   },
   {
-    title: "Maynooth University Taught Postgraduate Scholarship",
-    country: "Ireland",
-    organization: "Maynooth University",
-    category: "Partial",
-    deadline: "2026-04-30",
-    link: "https://www.maynoothuniversity.ie/study-maynooth/postgraduate-studies/fees-funding-scholarships",
-    description: "Мэйнут их сургуулийн Мастерын хөтөлбөрт нэг жилийн хугацаатай суралцах оюутнуудад зориулсан €2,000-ын тэтгэлэг.",
-    minIelts: 6.5,
-    minGpa: 3.2,
-    minHsk: 0,
-    minTopik: 0,
-    minJlpt: 0,
-    minGerman: 0,
-    degree: "Master",
-    requirements: [
-      "Open to all international applicants",
-      "Based on undergraduate academic achievement"
+    "title": "France-Mongolia Joint Scholarship",
+    "country": "France",
+    "organization": "Embassy of France in Mongolia / Ministry of Education",
+    "category": "Full",
+    "deadline": "2026-05-15",
+    "link": "https://mn.ambafrance.org/",
+    "description": "Монгол Улсын БШУЯ болон Францын Элчин сайдын яамны хамтарсан тэтгэлэг. Магистр, Докторын түвшинд суралцах оюутнуудын зардлыг бүрэн хариуцна.",
+    "minIelts": 6.5,
+    "minGpa": 3.2,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Master / PhD",
+    "requirements": [
+      "Mongolian citizenship",
+      "Excellent academic record",
+      "Field of study must be a priority for Mongolia"
     ],
-    checklist: [
-      "Official Transcripts",
-      "Degree Certificate",
-      "Passport Copy"
+    "checklist": [
+      "Study Plan / Research Project",
+      "CV in French or English",
+      "Diplomas and Transcripts"
     ]
   },
   {
-    title: "TUS International Student Scholarship",
-    country: "Ireland",
-    organization: "Technological University of the Shannon",
-    category: "Partial",
-    deadline: "2026-07-01",
-    link: "https://tus.ie/international/scholarships/",
-    description: "Технологийн чиглэлээр Айрландад суралцах хүсэлтэй оюутнуудад зориулсан 20-30%-ийн төлбөрийн хөнгөлөлт.",
-    minIelts: 6.0,
-    minGpa: 2.8,
-    minHsk: 0,
-    minTopik: 0,
-    minJlpt: 0,
-    minGerman: 0,
-    degree: "Bachelor / Master",
-    requirements: [
-      "Academic excellence in previous studies",
-      "Statement of purpose"
+    "title": "Eiffel Excellence Scholarship Program",
+    "country": "France",
+    "organization": "Campus France",
+    "category": "Full",
+    "deadline": "2026-01-10",
+    "link": "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence",
+    "description": "Францын ГХЯ-наас олгодог хамгийн нэр хүндтэй тэтгэлэг. Сар бүрийн 1,181€ (Master) - 1,800€ (PhD) тэтгэмж, эрүүл мэндийн даатгал, ирэх очих нислэгийн зардлыг даана.",
+    "minIelts": 7.0,
+    "minGpa": 3.5,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Master / PhD",
+    "requirements": [
+      "Nomination by a French Higher Education Institution",
+      "Age limit: 27 for Master, 32 for PhD",
+      "First-time applicants only"
     ],
-    checklist: [
-      "TUS Application Reference",
+    "checklist": [
+      "University Nomination Form",
+      "Professional Project Statement",
+      "Language Proficiency Certificate"
+    ]
+  },
+  {
+    "title": "Emile Boutmy Scholarship (Sciences Po)",
+    "country": "France",
+    "organization": "Sciences Po University",
+    "category": "Partial / Full",
+    "deadline": "2026-02-15",
+    "link": "https://www.sciencespo.fr/students/en/fees-funding/financial-aid/emile-boutmy-scholarship/",
+    "description": "Европын холбооны бус орнуудын шилдэг оюутнуудад зориулсан тэтгэлэг. Сургалтын төлбөрөөс 3,000€-оос 13,000€ хүртэлх хөнгөлөлт үзүүлнэ.",
+    "minIelts": 7.0,
+    "minGpa": 3.3,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Bachelor / Master",
+    "requirements": [
+      "First time applicant from a non-EU state",
+      "Admitted to Sciences Po's undergraduate or graduate program",
+      "Social criteria and academic excellence"
+    ],
+    "checklist": [
+      "Tax returns or proof of income",
+      "Curriculum Vitae",
+      "Two Academic References"
+    ]
+  },
+  {
+    "title": "Stefan Banach Scholarship Programme",
+    "country": "Poland",
+    "organization": "Polish National Agency for Academic Exchange (NAWA)",
+    "category": "Full",
+    "deadline": "2026-05-08",
+    "link": "https://nawa.gov.pl/en/students/foreign-students/the-banach-scholarship-programme",
+    "description": "Монгол оюутнуудад зориулсан хамгийн том тэтгэлэг. Инженерчлэл, байгалийн шинжлэх ухаан, хөдөө аж ахуйн чиглэлээр Магистрт суралцах зардлыг бүрэн даана.",
+    "minIelts": 6.0,
+    "minGpa": 3.0,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Master",
+    "requirements": [
+      "Citizen of Mongolia",
+      "Bachelor's degree obtained not earlier than 2024 (or final year student)",
+      "Not having a previous Master's degree"
+    ],
+    "checklist": [
+      "Passport scan",
+      "Bachelor's Diploma or Certificate of Student Status",
+      "English (B2) or Polish language certificate"
+    ]
+  },
+  {
+    "title": "Jagiellonian University Scholarship",
+    "country": "Poland",
+    "organization": "Jagiellonian University in Krakow",
+    "category": "Full",
+    "deadline": "2026-07-15",
+    "link": "https://welcome.uj.edu.pl/en_GB/admission/scholarships",
+    "description": "Польшийн хамгийн эртний, нэр хүндтэй сургуулиас олгодог тэтгэлэг. Сургалтын төлбөрөөс чөлөөлөхөөс гадна сар бүр 1,500 PLN тэтгэмж олгоно.",
+    "minIelts": 6.5,
+    "minGpa": 3.0,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Bachelor / Master / PhD",
+    "requirements": [
+      "High academic performance (GPA > 85%)",
+      "Admission to a program at Jagiellonian University",
+      "Strong motivation and recommendation letters"
+    ],
+    "checklist": [
+      "Curriculum Vitae (CV)",
       "Motivation Letter",
-      "IELTS Certificate"
+      "Two Recommendation Letters"
+    ]
+  },
+  {
+    "title": "Lane Kirkland Scholarship Program",
+    "country": "Poland",
+    "organization": "Leaders of Change Foundation / NAWA",
+    "category": "Full",
+    "deadline": "2026-03-01",
+    "link": "https://kirkland.edu.pl/en/",
+    "description": "2-аас доошгүй жил ажилласан туршлагатай залуу удирдагч, мэргэжилтнүүдэд зориулсан 2 семестрийн судалгааны тэтгэлэг.",
+    "minIelts": 6.0,
+    "minGpa": 2.8,
+    "minHsk": 0,
+    "minTopik": 0,
+    "minJlpt": 0,
+    "minGerman": 0,
+    "degree": "Post-graduate / Professional",
+    "requirements": [
+      "Up to 40 years of age",
+      "At least 2 years of professional experience",
+      "Knowledge of Polish (A1/A2) or English (B2)"
+    ],
+    "checklist": [
+      "Diplomas and Transcripts",
+      "Two Letters of Recommendation",
+      "Professional Internship Plan"
     ]
   }
 ];

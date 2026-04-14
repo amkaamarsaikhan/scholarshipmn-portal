@@ -15,6 +15,8 @@ const HERO_SLIDES = [
   { id: 2, title: "Дэлхийн боловсролыг", subtitle: "ЭНДЭЭС ОЛ.", image: "/hero2.png" },
 ];
 
+const FEATURED_COUNTRIES = ["Ireland", "Italy", "France", "Poland"] as const;
+
 function uniqueCountriesFromScholarships(items: { country?: string }[]): string[] {
   const seen = new Set<string>();
   for (const item of items) {
@@ -24,6 +26,46 @@ function uniqueCountriesFromScholarships(items: { country?: string }[]): string[
   return [...seen].sort((a, b) => a.localeCompare(b));
 }
 
+/** Олон улсыг нэгтгэж, Ирланд, Итали, Франц, Польш-ийг дээр нь үргэлж харуулна */
+function countryFilterListFromData(items: { country?: string }[]): string[] {
+  const fromData = uniqueCountriesFromScholarships(items);
+  const rest = fromData.filter((c) => !FEATURED_COUNTRIES.includes(c as (typeof FEATURED_COUNTRIES)[number]));
+  return [...FEATURED_COUNTRIES, ...rest];
+}
+
+type HomeCategoryFilter = "bachelor" | "master" | "doctor" | "partial" | "full";
+
+function matchesHomeCategoryFilter(
+  item: { degree?: string; level?: string; category?: string; type?: string },
+  filter: HomeCategoryFilter | null
+): boolean {
+  if (!filter) return true;
+  const degree = `${item.degree ?? ""} ${item.level ?? ""}`.toLowerCase();
+  const funding = `${item.category ?? ""} ${item.type ?? ""}`.toLowerCase();
+  switch (filter) {
+    case "bachelor":
+      return degree.includes("bachelor");
+    case "master":
+      return degree.includes("master");
+    case "doctor":
+      return degree.includes("phd") || degree.includes("doctor") || degree.includes("doctoral");
+    case "partial":
+      return funding.includes("partial");
+    case "full":
+      return funding.includes("full");
+    default:
+      return true;
+  }
+}
+
+const CATEGORY_FILTER_BUTTONS: { id: HomeCategoryFilter; label: string }[] = [
+  { id: "bachelor", label: "Bachelor" },
+  { id: "master", label: "Master" },
+  { id: "doctor", label: "Doctor" },
+  { id: "partial", label: "Partial" },
+  { id: "full", label: "Full" },
+];
+
 export default function Home() {
   const [current, setCurrent] = useState(0);
   const [scholarships, setScholarships] = useState<any[]>([]);
@@ -32,6 +74,7 @@ export default function Home() {
   const { savedItems, isSaved } = useAuth();
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<HomeCategoryFilter | null>(null);
 
   // Анхны өгөгдлөө татах
   useEffect(() => {
@@ -40,7 +83,7 @@ export default function Home() {
       try {
         const data = await getScholarships();
         setScholarships(data || []);
-        setCountryFilterOptions(uniqueCountriesFromScholarships(data || []));
+        setCountryFilterOptions(countryFilterListFromData(data || []));
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -60,17 +103,19 @@ export default function Home() {
   const filteredScholarships = scholarships.filter((item) => {
     const matchesSaved = showSavedOnly ? isSaved(item.id) : true;
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
-    return matchesSaved && matchesCountry;
+    const matchesCat = matchesHomeCategoryFilter(item, selectedCategory);
+    return matchesSaved && matchesCountry && matchesCat;
   });
 
   const clearFilters = async () => {
     setSelectedCountry(null);
+    setSelectedCategory(null);
     setShowSavedOnly(false);
     setLoading(true);
     try {
       const data = await getScholarships();
       setScholarships(data || []);
-      setCountryFilterOptions(uniqueCountriesFromScholarships(data || []));
+      setCountryFilterOptions(countryFilterListFromData(data || []));
     } finally {
       setLoading(false);
     }
@@ -123,7 +168,7 @@ export default function Home() {
                   href="/"
                   scroll={false}
                   onClick={() => void clearFilters()}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${(!selectedCountry && !showSavedOnly) ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${(!selectedCountry && !showSavedOnly && !selectedCategory) ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
                 >
                   <Globe size={18} /> Бүх тэтгэлгүүд
                 </Link>
@@ -154,7 +199,8 @@ export default function Home() {
 
             {/* Countries */}
             <div className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm max-h-[500px] flex flex-col">
-              <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-4">Popular Countries</p>
+              <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1">Popular Countries</p>
+              <p className="text-[10px] text-slate-500 mb-4 leading-relaxed">🇮🇪 🇮🇹 🇫🇷 🇵🇱 Ирланд, Итали, Франц, Польш — дээрээс эхлүүлсэн</p>
               <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
                 {countryFilterOptions.length === 0 ? (
                   <p className="text-xs text-slate-400 px-2 py-2">Улсын жагсаалт ачааллаагүй байна.</p>
@@ -179,20 +225,53 @@ export default function Home() {
 
         {/* Results Area */}
         <div className="w-full lg:w-3/4">
-          <div className="flex justify-between items-end mb-10">
+          <div className="flex justify-between items-end gap-4 mb-6">
             <div>
               <p className="text-emerald-600 font-bold text-[10px] uppercase tracking-[0.3em] mb-2">
-                {showSavedOnly ? "Таны хадгалсан" : selectedCountry ? `Шүүлтүүр: ${selectedCountry}` : "Нийт"}
+                {showSavedOnly
+                  ? "Таны хадгалсан"
+                  : selectedCountry || selectedCategory
+                    ? `Шүүлтүүр: ${[selectedCountry, selectedCategory ? CATEGORY_FILTER_BUTTONS.find((b) => b.id === selectedCategory)?.label : null].filter(Boolean).join(" · ")}`
+                    : "Нийт"}
               </p>
               <h2 className="text-3xl font-serif italic text-emerald-950">
-                {showSavedOnly ? "Хадгалсан тэтгэлгүүд" : selectedCountry ? `${selectedCountry}-ийн тэтгэлгүүд` : "Тэтгэлгүүд"}
+                {showSavedOnly
+                  ? "Хадгалсан тэтгэлгүүд"
+                  : selectedCountry && selectedCategory
+                    ? `${selectedCountry} · ${CATEGORY_FILTER_BUTTONS.find((b) => b.id === selectedCategory)?.label}`
+                    : selectedCountry
+                      ? `${selectedCountry}-ийн тэтгэлгүүд`
+                      : selectedCategory
+                        ? `${CATEGORY_FILTER_BUTTONS.find((b) => b.id === selectedCategory)?.label} — тэтгэлгүүд`
+                        : "Тэтгэлгүүд"}
               </h2>
             </div>
-            {(selectedCountry || showSavedOnly) && (
-              <button onClick={clearFilters} className="text-xs text-emerald-600 flex items-center gap-1 hover:underline font-bold uppercase tracking-tighter">
+            {(selectedCountry || showSavedOnly || selectedCategory) && (
+              <button onClick={clearFilters} className="text-xs text-emerald-600 flex items-center gap-1 hover:underline font-bold uppercase tracking-tighter shrink-0">
                 <X size={14} /> Арилгах
               </button>
             )}
+          </div>
+
+          <div className="mb-10 flex flex-wrap gap-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-full mb-1">Category</span>
+            {CATEGORY_FILTER_BUTTONS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setShowSavedOnly(false);
+                  setSelectedCategory((prev) => (prev === id ? null : id));
+                }}
+                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
+                  selectedCategory === id
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                    : "bg-white text-emerald-900 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50/80"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {loading ? (
