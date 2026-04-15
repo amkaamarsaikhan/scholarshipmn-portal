@@ -150,7 +150,7 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-sans font-black mb-8 text-emerald-400">{HERO_SLIDES[current].subtitle}</h2>
             
             {/* Ухаалаг хайлтын хэсэг */}
-            <div className="max-w-3xl mx-auto">
+            <div className="w-full min-w-0 max-w-3xl mx-auto">
               <SearchSection 
                 onSearchResults={(data) => setScholarships(data)} 
                 setLoadingState={(val) => setLoading(val)} 
@@ -205,7 +205,6 @@ export default function Home() {
             {/* Countries */}
             <div className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm max-h-[500px] flex flex-col">
               <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1">Popular Countries</p>
-              <p className="text-[10px] text-slate-500 mb-4 leading-relaxed">🇮🇪 🇮🇹 🇫🇷 🇵🇱 Ирланд, Итали, Франц, Польш — дээрээс эхлүүлсэн</p>
               <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
                 {countryFilterOptions.length === 0 ? (
                   <p className="text-xs text-slate-400 px-2 py-2">Улсын жагсаалт ачааллаагүй байна.</p>

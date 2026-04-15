@@ -138,9 +138,9 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
     };
 
     return (
-        <div className="w-full max-w-3xl mx-auto flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-lg">
+        <div className="w-full min-w-0 max-w-3xl mx-auto flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-lg">
             <input 
-                className="flex-1 bg-transparent border-none text-white placeholder:text-emerald-100/50 focus:outline-none px-4 py-2"
+                className="min-w-0 flex-1 bg-transparent border-none text-white placeholder:text-emerald-100/50 focus:outline-none px-2 py-2 sm:px-4"
                 placeholder="Жишээ нь: Би IELTS 6-тай Солонгос явах тэтгэлэг хайж байна..."
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
@@ -149,7 +149,7 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
             <button 
                 onClick={handleSmartSearch} 
                 disabled={isLocalLoading}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-md px-6 py-2 uppercase text-[10px] tracking-widest font-bold transition-all disabled:opacity-50"
+                className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md px-3 py-2 sm:px-6 uppercase text-[10px] tracking-widest font-bold transition-all disabled:opacity-50"
             >
                 {isLocalLoading ? "..." : "Хайх"}
             </button>
