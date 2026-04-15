@@ -6,10 +6,6 @@ import {
     Facebook, Instagram, Twitter, Mail, MapPin, Phone, 
     CheckCircle2, Loader2, Send 
 } from 'lucide-react';
-import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
-
-const NEWSLETTER_COLLECTION = "newsletter";
 
 const Footer = () => {
     const [email, setEmail] = useState("");
@@ -25,11 +21,20 @@ const Footer = () => {
         setSubscribeState("idle");
         setSubscribeMessage("");
         try {
-            // 1. Имэйл өмнө нь бүртгүүлсэн эсэхийг шалгах (Давхардал үүсгэхгүй байх)
-            const q = query(collection(db, NEWSLETTER_COLLECTION), where("email", "==", email));
-            const querySnapshot = await getDocs(q);
+            // Newsletter subscription-ийг server API-р дамжуулж хадгална.
+            // Ингэснээр user нэвтрээгүй (guest) байсан ч permission-denied авахгүй.
+            const subscribeRes = await fetch('/api/newsletter-subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
 
-            if (!querySnapshot.empty) {
+            const subscribeResult = await subscribeRes.json();
+            if (!subscribeRes.ok) {
+                throw new Error(subscribeResult?.error || 'Subscription failed');
+            }
+
+            if (subscribeResult?.alreadySubscribed) {
                 setSubscribeState("success");
                 setSubscribeMessage("Та өмнө нь бүртгүүлсэн байна.");
                 setEmail("");
@@ -37,18 +42,11 @@ const Footer = () => {
                 return;
             }
 
-            // 2. Firebase Firestore-д хадгалах
-            await addDoc(collection(db, NEWSLETTER_COLLECTION), {
-                email: email,
-                subscribedAt: serverTimestamp(),
-                status: "active"
-            });
-
-            // 3. Админ руу Zoho-гоор мэдэгдэл илгээх API-г дуудах (Telegram-ийн оронд)
+            // Админ руу Zoho-гоор мэдэгдэл илгээх API-г дуудах
             await fetch('/api/admin-notification', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ newUserEmail: email }),
+                body: JSON.stringify({ newUserEmail: email.trim().toLowerCase() }),
             });
 
             setSubscribeState("success");
