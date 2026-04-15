@@ -3,6 +3,8 @@ import nodemailer from 'nodemailer';
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
+const NEWSLETTER_COLLECTION = "newsletter";
+const LEGACY_COLLECTION = "subscribers";
 
 export async function POST(req: Request) {
     try {
@@ -28,8 +30,12 @@ export async function POST(req: Request) {
 
         const { title, description, link, country } = await req.json();
 
-        const snapshot = await db.collection("subscribers").where("status", "==", "active").get();
-        const recipientEmails = snapshot.docs.map(doc => doc.data().email);
+        let snapshot = await db.collection(NEWSLETTER_COLLECTION).where("status", "==", "active").get();
+        if (snapshot.empty) {
+            // Backward compatibility: existing records might still be in old collection.
+            snapshot = await db.collection(LEGACY_COLLECTION).where("status", "==", "active").get();
+        }
+        const recipientEmails = snapshot.docs.map(doc => doc.data().email).filter(Boolean);
 
         if (recipientEmails.length === 0) {
             return NextResponse.json({ success: true, message: "No subscribers found" });

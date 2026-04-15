@@ -9,30 +9,36 @@ import {
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 
+const NEWSLETTER_COLLECTION = "newsletter";
+
 const Footer = () => {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
-    const [subscribed, setSubscribed] = useState(false);
+    const [subscribeState, setSubscribeState] = useState<"idle" | "success" | "error">("idle");
+    const [subscribeMessage, setSubscribeMessage] = useState("");
 
     const handleSubscribe = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) return;
 
         setLoading(true);
+        setSubscribeState("idle");
+        setSubscribeMessage("");
         try {
             // 1. Имэйл өмнө нь бүртгүүлсэн эсэхийг шалгах (Давхардал үүсгэхгүй байх)
-            const q = query(collection(db, "subscribers"), where("email", "==", email));
+            const q = query(collection(db, NEWSLETTER_COLLECTION), where("email", "==", email));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-                setSubscribed(true);
+                setSubscribeState("success");
+                setSubscribeMessage("Та өмнө нь бүртгүүлсэн байна.");
                 setEmail("");
                 setLoading(false);
                 return;
             }
 
             // 2. Firebase Firestore-д хадгалах
-            await addDoc(collection(db, "subscribers"), {
+            await addDoc(collection(db, NEWSLETTER_COLLECTION), {
                 email: email,
                 subscribedAt: serverTimestamp(),
                 status: "active"
@@ -45,9 +51,16 @@ const Footer = () => {
                 body: JSON.stringify({ newUserEmail: email }),
             });
 
-            setSubscribed(true);
+            setSubscribeState("success");
+            setSubscribeMessage("Амжилттай бүртгэгдлээ!");
             setEmail("");
-        } catch (error) {
+        } catch (error: any) {
+            if (typeof error?.code === "string" && error.code.includes("permission-denied")) {
+                setSubscribeMessage("Системийн зөвшөөрлийн алдаа гарлаа. Админтай холбогдоно уу.");
+            } else {
+                setSubscribeMessage("Бүртгэл амжилтгүй боллоо. Дахин оролдоно уу.");
+            }
+            setSubscribeState("error");
             console.error("Subscription error:", error);
         } finally {
             setLoading(false);
@@ -117,30 +130,35 @@ const Footer = () => {
                             <h4 className="font-bold text-lg mb-2">Мэдээлэл авах</h4>
                             <p className="text-emerald-100/50 text-xs mb-6">Шинэ тэтгэлгийн мэдээллийг цаг алдалгүй имэйлээр аваарай.</p>
                             
-                            {subscribed ? (
-                                <div className="bg-emerald-500/20 text-emerald-400 p-4 rounded-xl text-xs flex items-center gap-3 animate-in fade-in zoom-in">
-                                    <CheckCircle2 size={18}/> 
-                                    <span>Амжилттай бүртгэгдлээ!</span>
+                            <form onSubmit={handleSubscribe} className="space-y-3">
+                                <div className="relative">
+                                    <input
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Имэйл хаяг"
+                                        disabled={loading}
+                                        className="w-full bg-[#064e3b] border border-emerald-800 rounded-xl px-4 py-4 text-xs focus:outline-none focus:border-emerald-400 transition-all placeholder:text-emerald-100/30 text-white disabled:opacity-70"
+                                    />
+                                    <button 
+                                        type="submit"
+                                        disabled={loading}
+                                        className="absolute right-2 top-2 bottom-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 rounded-lg transition-all flex items-center justify-center disabled:opacity-70"
+                                    >
+                                        {loading ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>}
+                                    </button>
                                 </div>
-                            ) : (
-                                <form onSubmit={handleSubscribe} className="space-y-3">
-                                    <div className="relative">
-                                        <input
-                                            type="email"
-                                            required
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="Имэйл хаяг"
-                                            className="w-full bg-[#064e3b] border border-emerald-800 rounded-xl px-4 py-4 text-xs focus:outline-none focus:border-emerald-400 transition-all placeholder:text-emerald-100/30 text-white"
-                                        />
-                                        <button 
-                                            disabled={loading}
-                                            className="absolute right-2 top-2 bottom-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 rounded-lg transition-all flex items-center justify-center"
-                                        >
-                                            {loading ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>}
-                                        </button>
-                                    </div>
-                                </form>
+                            </form>
+                            {subscribeState !== "idle" && (
+                                <div className={`p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in zoom-in ${
+                                    subscribeState === "success"
+                                        ? "bg-emerald-500/20 text-emerald-300"
+                                        : "bg-red-500/20 text-red-200"
+                                }`}>
+                                    {subscribeState === "success" ? <CheckCircle2 size={16} /> : <span>!</span>}
+                                    <span>{subscribeMessage}</span>
+                                </div>
                             )}
                         </div>
                     </div>
