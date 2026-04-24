@@ -299,38 +299,36 @@ export default function PartnerRegisterPage() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-8">
-                        {/* Байгууллагын үндсэн мэдээлэл */}
-                        <div className="bg-white p-10 rounded-[3rem] shadow-xl border border-white space-y-8">
-                            <h3 className="text-xl font-black flex items-center gap-3 uppercase italic text-emerald-900 tracking-tighter">
-                                <Building2 size={24} className="text-emerald-600" /> Ерөнхий мэдээлэл
-                            </h3>
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4 italic tracking-widest">Байгууллагын нэр</label>
-                                <input {...register("name")} required className="w-full h-16 px-8 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold transition-all" placeholder="Нэрээ бичнэ үү..." />
-                            </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                    {/* Байгууллагын үндсэн мэдээлэл */}
+                    <div className="bg-white p-10 rounded-[3rem] shadow-xl border border-white space-y-8">
+                        <h3 className="text-xl font-black flex items-center gap-3 uppercase italic text-emerald-900 tracking-tighter">
+                            <Building2 size={24} className="text-emerald-600" /> Ерөнхий мэдээлэл
+                        </h3>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 italic tracking-widest">Байгууллагын нэр</label>
+                            <input {...register("name")} required className="w-full h-16 px-8 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold transition-all" placeholder="Нэрээ бичнэ үү..." />
+                        </div>
 
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4 italic tracking-widest">Хариуцдаг чиглэлүүд</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-6 rounded-[2rem]">
-                                    {SUPPORTED_COUNTRIES.map((country) => (
-                                        <label key={country} className="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:border-emerald-200 border border-transparent transition-all shadow-sm">
-                                            <input type="checkbox" value={country} {...register("selectedCountries")} className="w-4 h-4 rounded border-slate-300 text-emerald-600" />
-                                            <span className="text-[11px] font-black text-slate-600 uppercase italic tracking-tighter">{country}</span>
-                                        </label>
-                                    ))}
-                                </div>
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 italic tracking-widest">Хариуцдаг чиглэлүүд</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-6 rounded-[2rem]">
+                                {SUPPORTED_COUNTRIES.map((country) => (
+                                    <label key={country} className="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:border-emerald-200 border border-transparent transition-all shadow-sm">
+                                        <input type="checkbox" value={country} {...register("selectedCountries")} className="w-4 h-4 rounded border-slate-300 text-emerald-600" />
+                                        <span className="text-[11px] font-black text-slate-600 uppercase italic tracking-tighter">{country}</span>
+                                    </label>
+                                ))}
                             </div>
+                        </div>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4 italic tracking-widest">Танилцуулга</label>
-                                <textarea {...register("description")} required className="w-full p-8 bg-slate-50 rounded-[2rem] outline-none focus:ring-2 focus:ring-emerald-500 font-medium h-44" placeholder="Давуу талуудаа бичнэ үү..." />
-                            </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 italic tracking-widest">Танилцуулга</label>
+                            <textarea {...register("description")} required className="w-full p-8 bg-slate-50 rounded-[2rem] outline-none focus:ring-2 focus:ring-emerald-500 font-medium h-44" placeholder="Давуу талуудаа бичнэ үү..." />
                         </div>
                     </div>
 
-                    <div className="space-y-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Холбоо барих */}
                         <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-white space-y-6">
                             <h3 className="text-lg font-black flex items-center gap-2 uppercase italic text-emerald-900 tracking-tighter"><Mail size={20} className="text-emerald-600" /> Холбоо барих</h3>
@@ -468,18 +466,19 @@ export default function PartnerRegisterPage() {
                             </div>
                         </div>
 
-                        <Button 
-                            disabled={loading}
-                            className="w-full h-20 bg-emerald-950 hover:bg-emerald-900 text-white rounded-[2rem] font-black uppercase tracking-widest text-lg shadow-2xl transition-all italic"
-                        >
-                            {loading ? (
-                                <div className="flex items-center gap-3">
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Илгээж байна...
-                                </div>
-                            ) : "Бүртгүүлэх"}
-                        </Button>
                     </div>
+
+                    <Button 
+                        disabled={loading}
+                        className="w-full h-20 bg-emerald-950 hover:bg-emerald-900 text-white rounded-[2rem] font-black uppercase tracking-widest text-lg shadow-2xl transition-all italic"
+                    >
+                        {loading ? (
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Илгээж байна...
+                            </div>
+                        ) : "Бүртгүүлэх"}
+                    </Button>
                 </form>
             </div>
         </div>
