@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from "react-hook-form";
 import { db, storage } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -40,7 +40,6 @@ interface PartnerFormValues {
     logo: FileList;
     featuredImage: FileList;
     contractAccepted: boolean;
-    eSignature: string;
     billingPlan: "monthly" | "yearly";
 }
 
@@ -56,7 +55,7 @@ type InvoiceData = {
     partnerName: string;
     partnerEmail: string;
     issuedAtISO: string;
-    signature: string;
+    signatureImage: string;
 };
 
 function generateInvoiceNumber() {
@@ -107,7 +106,8 @@ function downloadInvoicePdf(invoice: InvoiceData) {
     <div class="row"><span class="label">И-мэйл:</span> ${escapeHtml(invoice.partnerEmail)}</div>
     <div class="row"><span class="label">Багц:</span> ${escapeHtml(invoice.billingPlanLabel)}</div>
     <div class="row"><span class="label">Үүсгэсэн огноо:</span> ${escapeHtml(issued)}</div>
-    <div class="row"><span class="label">Цахим гарын үсэг:</span> ${escapeHtml(invoice.signature)}</div>
+    <div class="row"><span class="label">Цахим гарын үсэг:</span></div>
+    <div class="row"><img src="${invoice.signatureImage}" alt="signature" style="max-width: 280px; max-height: 100px; border-bottom: 1px solid #334155;" /></div>
     <div class="amount">Төлөх дүн: ${escapeHtml(formatMnt(invoice.amount))}</div>
     <p class="muted" style="margin-top: 20px;">
       Данс: MN810015001105591438 | Голомт банк | А.Амаржаргал
@@ -133,12 +133,14 @@ export default function PartnerRegisterPage() {
     const [error, setError] = useState<string | null>(null);
     const [showContractDetails, setShowContractDetails] = useState(false);
     const [savedInvoice, setSavedInvoice] = useState<InvoiceData | null>(null);
+    const [signatureDataUrl, setSignatureDataUrl] = useState("");
+    const [isDrawing, setIsDrawing] = useState(false);
+    const signatureCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const { register, handleSubmit, reset, watch, setValue } = useForm<PartnerFormValues>({
         defaultValues: {
             billingPlan: "monthly",
             contractAccepted: false,
-            eSignature: "",
         },
     });
 
@@ -190,8 +192,8 @@ export default function PartnerRegisterPage() {
             setError("Гэрээг зөвшөөрөх шаардлагатай.");
             return;
         }
-        if (!data.eSignature?.trim()) {
-            setError("Цахим гарын үсгээ оруулна уу.");
+        if (!signatureDataUrl) {
+            setError("Цахим гарын үсгээ зурна уу.");
             return;
         }
 
@@ -214,7 +216,7 @@ export default function PartnerRegisterPage() {
                 featuredImage: featuredImageUrl,
                 approved: false,
                 contractAccepted: true,
-                eSignature: data.eSignature.trim(),
+                eSignatureImage: signatureDataUrl,
                 billingPlan: data.billingPlan,
                 createdAt: serverTimestamp(),
             });
@@ -229,7 +231,7 @@ export default function PartnerRegisterPage() {
                 partnerName: data.name,
                 partnerEmail: data.email,
                 issuedAtISO,
-                signature: data.eSignature.trim(),
+                signatureImage: signatureDataUrl,
             };
 
             await addDoc(collection(db, "partnerInvoices"), {
@@ -245,11 +247,75 @@ export default function PartnerRegisterPage() {
             setSavedInvoice(invoicePayload);
             setSuccess(true);
             reset();
+            setSignatureDataUrl("");
+            clearSignaturePad();
         } catch (err: any) {
             setError(err.message || "Алдаа гарлаа.");
         } finally {
             setLoading(false);
         }
+    };
+
+    const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        const canvas = signatureCanvasRef.current;
+        if (!canvas) return null;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY,
+        };
+    };
+
+    const beginSignature = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        const canvas = signatureCanvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const point = getCanvasPoint(e);
+        if (!ctx || !point) return;
+        setIsDrawing(true);
+        canvas.setPointerCapture(e.pointerId);
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 2.2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(point.x, point.y);
+    };
+
+    const drawSignature = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        if (!isDrawing) return;
+        const canvas = signatureCanvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const point = getCanvasPoint(e);
+        if (!ctx || !point) return;
+        ctx.lineTo(point.x, point.y);
+        ctx.stroke();
+    };
+
+    const endSignature = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        const canvas = signatureCanvasRef.current;
+        if (!canvas) return;
+        if (isDrawing) {
+            const ctx = canvas.getContext("2d");
+            ctx?.closePath();
+            setSignatureDataUrl(canvas.toDataURL("image/png"));
+        }
+        setIsDrawing(false);
+        if (canvas.hasPointerCapture(e.pointerId)) {
+            canvas.releasePointerCapture(e.pointerId);
+        }
+    };
+
+    const clearSignaturePad = () => {
+        const canvas = signatureCanvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        setSignatureDataUrl("");
     };
 
     if (success) {
@@ -454,14 +520,29 @@ export default function PartnerRegisterPage() {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-2 italic tracking-widest">Цахим гарын үсэг</label>
-                                <div className="relative">
-                                    <PenLine size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        {...register("eSignature")}
-                                        required
-                                        className="w-full h-12 pl-10 pr-4 bg-slate-50 rounded-xl outline-none font-medium text-sm"
-                                        placeholder="Нэр, овог (ж: А.Амараа)"
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                    <canvas
+                                        ref={signatureCanvasRef}
+                                        width={640}
+                                        height={180}
+                                        onPointerDown={beginSignature}
+                                        onPointerMove={drawSignature}
+                                        onPointerUp={endSignature}
+                                        onPointerLeave={endSignature}
+                                        className="w-full h-36 bg-white rounded-lg border border-slate-200 touch-none cursor-crosshair"
                                     />
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                                            <PenLine size={12} /> Cursor эсвэл touch-оор зурна уу.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={clearSignaturePad}
+                                            className="text-xs font-bold text-emerald-700 hover:text-emerald-900"
+                                        >
+                                            Арилгах
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
