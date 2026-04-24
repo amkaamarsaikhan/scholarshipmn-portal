@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from "react-hook-form";
-import { db, storage } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { sendEmailVerification } from "firebase/auth";
+import { auth, db, storage } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp, getDocs, query, where, limit, updateDoc, doc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { 
     Building2, 
@@ -56,6 +58,21 @@ type InvoiceData = {
     partnerEmail: string;
     issuedAtISO: string;
     signatureImage: string;
+};
+
+type ExistingPartnerDoc = {
+    id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    link?: string;
+    description?: string;
+    targetCountries?: string[];
+    logo?: string;
+    featuredImage?: string;
+    approved?: boolean;
+    billingPlan?: "monthly" | "yearly";
+    eSignatureImage?: string;
 };
 
 function generateInvoiceNumber() {
@@ -133,9 +150,14 @@ export default function PartnerRegisterPage() {
     const [error, setError] = useState<string | null>(null);
     const [showContractDetails, setShowContractDetails] = useState(false);
     const [savedInvoice, setSavedInvoice] = useState<InvoiceData | null>(null);
+    const [emailVerifyNotice, setEmailVerifyNotice] = useState<string | null>(null);
+    const [isResendingVerification, setIsResendingVerification] = useState(false);
     const [signatureDataUrl, setSignatureDataUrl] = useState("");
     const [isDrawing, setIsDrawing] = useState(false);
+    const [existingPartner, setExistingPartner] = useState<ExistingPartnerDoc | null>(null);
+    const [isPreloadingPartner, setIsPreloadingPartner] = useState(true);
     const signatureCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const { user } = useAuth();
 
     const { register, handleSubmit, reset, watch, setValue } = useForm<PartnerFormValues>({
         defaultValues: {
@@ -172,6 +194,71 @@ export default function PartnerRegisterPage() {
         }
     }, [watchedBanner]);
 
+    useEffect(() => {
+        const preloadPartner = async () => {
+            if (!user) {
+                setExistingPartner(null);
+                setIsPreloadingPartner(false);
+                return;
+            }
+            try {
+                setIsPreloadingPartner(true);
+                const partnerQuery = query(
+                    collection(db, "partners"),
+                    where("ownerUid", "==", user.uid),
+                    limit(1)
+                );
+                const snap = await getDocs(partnerQuery);
+                if (snap.empty) {
+                    setExistingPartner(null);
+                } else {
+                    const found = snap.docs[0];
+                    const partnerData = { id: found.id, ...(found.data() as Omit<ExistingPartnerDoc, "id">) };
+                    setExistingPartner(partnerData);
+                    setValue("name", partnerData.name || "");
+                    setValue("email", partnerData.email || user.email || "");
+                    setValue("phone", partnerData.phone || "");
+                    setValue("link", partnerData.link || "");
+                    setValue("description", partnerData.description || "");
+                    setValue("selectedCountries", Array.isArray(partnerData.targetCountries) ? partnerData.targetCountries : []);
+                    setValue("billingPlan", partnerData.billingPlan || "monthly");
+                    if (partnerData.logo) setLogoPreview(partnerData.logo);
+                    if (partnerData.featuredImage) setBannerPreview(partnerData.featuredImage);
+                    if (partnerData.eSignatureImage) {
+                        setSignatureDataUrl(partnerData.eSignatureImage);
+                    }
+                }
+            } catch (err) {
+                console.error("Partner preload error:", err);
+            } finally {
+                setIsPreloadingPartner(false);
+            }
+        };
+        void preloadPartner();
+    }, [user, setValue]);
+
+    useEffect(() => {
+        if (!signatureDataUrl) return;
+        const canvas = signatureCanvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const img = new Image();
+        img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const padding = 12;
+            const maxW = canvas.width - padding * 2;
+            const maxH = canvas.height - padding * 2;
+            const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+            const drawW = img.width * ratio;
+            const drawH = img.height * ratio;
+            const x = (canvas.width - drawW) / 2;
+            const y = (canvas.height - drawH) / 2;
+            ctx.drawImage(img, x, y, drawW, drawH);
+        };
+        img.src = signatureDataUrl;
+    }, [signatureDataUrl]);
+
     const uploadFile = async (file: File, folder: string) => {
         if (file.size > MAX_FILE_SIZE) {
             throw new Error(`${file.name} - Зургийн хэмжээ 2MB-аас их байна!`);
@@ -184,67 +271,100 @@ export default function PartnerRegisterPage() {
 
     const onSubmit = async (data: PartnerFormValues) => {
         setError(null);
+        setEmailVerifyNotice(null);
+        if (!user) {
+            setError("Эхлээд хэрэглэгчээр бүртгүүлж, нэвтэрсний дараа partner хүсэлт илгээнэ үү.");
+            return;
+        }
+        await user.reload();
+        const refreshedUser = auth.currentUser;
+        if (!refreshedUser?.emailVerified) {
+            setError("Мэйлээ баталгаажуулаад дахин оролдоно уу.");
+            setEmailVerifyNotice("Таны бүртгэлтэй мэйл баталгаажаагүй байна.");
+            return;
+        }
         if (!data.selectedCountries || data.selectedCountries.length === 0) {
             setError("Наад зах нь нэг чиглэл сонгоно уу!");
             return;
         }
-        if (!data.contractAccepted) {
+        if (!existingPartner && !data.contractAccepted) {
             setError("Гэрээг зөвшөөрөх шаардлагатай.");
             return;
         }
-        if (!signatureDataUrl) {
+        if (!existingPartner && !signatureDataUrl) {
             setError("Цахим гарын үсгээ зурна уу.");
             return;
         }
 
         setLoading(true);
         try {
-            let logoUrl = "";
-            let featuredImageUrl = "";
+            let logoUrl = existingPartner?.logo || "";
+            let featuredImageUrl = existingPartner?.featuredImage || "";
 
             if (data.logo?.[0]) logoUrl = await uploadFile(data.logo[0], "logos");
             if (data.featuredImage?.[0]) featuredImageUrl = await uploadFile(data.featuredImage[0], "banners");
 
-            const partnerRef = await addDoc(collection(db, "partners"), {
-                name: data.name,
-                email: data.email,
-                phone: data.phone,
-                link: data.link,
-                description: data.description,
-                targetCountries: data.selectedCountries,
-                logo: logoUrl,
-                featuredImage: featuredImageUrl,
-                approved: false,
-                contractAccepted: true,
-                eSignatureImage: signatureDataUrl,
-                billingPlan: data.billingPlan,
-                createdAt: serverTimestamp(),
-            });
+            if (existingPartner?.id) {
+                await updateDoc(doc(db, "partners", existingPartner.id), {
+                    name: data.name,
+                    email: data.email,
+                    ownerUid: refreshedUser.uid,
+                    ownerEmail: refreshedUser.email || data.email,
+                    phone: data.phone,
+                    link: data.link,
+                    description: data.description,
+                    targetCountries: data.selectedCountries,
+                    logo: logoUrl,
+                    featuredImage: featuredImageUrl,
+                    approved: false,
+                    pendingReview: true,
+                    updatedAt: serverTimestamp(),
+                });
+                setSavedInvoice(null);
+            } else {
+                const partnerRef = await addDoc(collection(db, "partners"), {
+                    name: data.name,
+                    email: data.email,
+                    ownerUid: refreshedUser.uid,
+                    ownerEmail: refreshedUser.email || data.email,
+                    phone: data.phone,
+                    link: data.link,
+                    description: data.description,
+                    targetCountries: data.selectedCountries,
+                    logo: logoUrl,
+                    featuredImage: featuredImageUrl,
+                    approved: false,
+                    contractAccepted: true,
+                    eSignatureImage: signatureDataUrl,
+                    billingPlan: data.billingPlan,
+                    createdAt: serverTimestamp(),
+                });
 
-            const selectedPlan = BILLING_OPTIONS[data.billingPlan];
-            const invoiceNumber = generateInvoiceNumber();
-            const issuedAtISO = new Date().toISOString();
-            const invoicePayload: InvoiceData = {
-                invoiceNumber,
-                amount: selectedPlan.amount,
-                billingPlanLabel: `${selectedPlan.label}${selectedPlan.discountLabel ? ` (${selectedPlan.discountLabel})` : ""}`,
-                partnerName: data.name,
-                partnerEmail: data.email,
-                issuedAtISO,
-                signatureImage: signatureDataUrl,
-            };
+                const selectedPlan = BILLING_OPTIONS[data.billingPlan];
+                const invoiceNumber = generateInvoiceNumber();
+                const issuedAtISO = new Date().toISOString();
+                const invoicePayload: InvoiceData = {
+                    invoiceNumber,
+                    amount: selectedPlan.amount,
+                    billingPlanLabel: `${selectedPlan.label}${selectedPlan.discountLabel ? ` (${selectedPlan.discountLabel})` : ""}`,
+                    partnerName: data.name,
+                    partnerEmail: data.email,
+                    issuedAtISO,
+                    signatureImage: signatureDataUrl,
+                };
 
-            await addDoc(collection(db, "partnerInvoices"), {
-                ...invoicePayload,
-                partnerId: partnerRef.id,
-                bankAccount: "MN810015001105591438",
-                bankName: "ГОЛОМТ БАНК",
-                receiverName: "А.Амаржаргал",
-                status: "unpaid",
-                createdAt: serverTimestamp(),
-            });
+                await addDoc(collection(db, "partnerInvoices"), {
+                    ...invoicePayload,
+                    partnerId: partnerRef.id,
+                    bankAccount: "MN810015001105591438",
+                    bankName: "ГОЛОМТ БАНК",
+                    receiverName: "А.Амаржаргал",
+                    status: "unpaid",
+                    createdAt: serverTimestamp(),
+                });
 
-            setSavedInvoice(invoicePayload);
+                setSavedInvoice(invoicePayload);
+            }
             setSuccess(true);
             reset();
             setSignatureDataUrl("");
@@ -253,6 +373,29 @@ export default function PartnerRegisterPage() {
             setError(err.message || "Алдаа гарлаа.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        setError(null);
+        setEmailVerifyNotice(null);
+        if (!user) {
+            setError("Нэвтэрсний дараа баталгаажуулах мэйл илгээх боломжтой.");
+            return;
+        }
+        try {
+            setIsResendingVerification(true);
+            await sendEmailVerification(user);
+            setEmailVerifyNotice("Баталгаажуулах мэйл амжилттай илгээгдлээ. Inbox/Spam шалгана уу.");
+        } catch (err: any) {
+            const code = typeof err?.code === "string" ? err.code : "";
+            if (code.includes("too-many-requests")) {
+                setError("Түр хүлээгээд дахин оролдоно уу. Хэт олон хүсэлт илгээгдсэн байна.");
+            } else {
+                setError("Баталгаажуулах мэйл илгээхэд алдаа гарлаа.");
+            }
+        } finally {
+            setIsResendingVerification(false);
         }
     };
 
@@ -325,8 +468,14 @@ export default function PartnerRegisterPage() {
                     <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 size={40} />
                     </div>
-                    <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter">Хүсэлт илгээгдлээ!</h2>
-                    <p className="text-slate-500 mb-8 font-bold">Админ хянаад тантай эргэн холбогдох болно.</p>
+                    <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter">
+                        {existingPartner ? "Мэдээлэл шинэчлэгдлээ!" : "Хүсэлт илгээгдлээ!"}
+                    </h2>
+                    <p className="text-slate-500 mb-8 font-bold">
+                        {existingPartner
+                            ? "Таны шинэчлэлт review төлөвт орлоо. Админ баталгаажуулсны дараа нийтлэгдэнэ."
+                            : "Админ хянаад тантай эргэн холбогдох болно."}
+                    </p>
                     {savedInvoice && (
                         <div className="mb-8 text-left bg-emerald-50 border border-emerald-100 p-5 rounded-2xl">
                             <p className="text-xs font-black text-emerald-700 mb-2 uppercase">Invoice</p>
@@ -353,15 +502,32 @@ export default function PartnerRegisterPage() {
     return (
         <div className="min-h-screen bg-[#F8FAFC] pt-32 pb-20 px-6">
             <div className="max-w-5xl mx-auto">
+                {isPreloadingPartner ? (
+                    <div className="text-center py-20 text-slate-400 font-bold">Партнер мэдээлэл ачааллаж байна...</div>
+                ) : (
+                <>
                 <div className="text-center mb-16">
                     <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase mb-4 italic">
-                        Партнер <span className="text-emerald-600">болох</span>
+                        Партнер <span className="text-emerald-600">{existingPartner ? "мэдээлэл шинэчлэх" : "болох"}</span>
                     </h1>
                 </div>
 
                 {error && (
                     <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center gap-3 font-bold text-sm italic">
                         <AlertCircle size={20} /> {error}
+                    </div>
+                )}
+                {emailVerifyNotice && (
+                    <div className="mb-8 p-4 bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl text-sm">
+                        <p className="font-bold">{emailVerifyNotice}</p>
+                        <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={isResendingVerification}
+                            className="mt-2 text-xs font-black uppercase tracking-wider text-amber-800 hover:text-amber-900 disabled:opacity-60"
+                        >
+                            {isResendingVerification ? "Илгээж байна..." : "Баталгаажуулах мэйл дахин илгээх"}
+                        </button>
                     </div>
                 )}
 
@@ -432,6 +598,7 @@ export default function PartnerRegisterPage() {
                                 {/* Banner Preview Хэсэг */}
                                 <div className="space-y-2">
                                     <p className="text-[10px] font-black uppercase text-slate-400 italic tracking-widest ml-2">Үндсэн Banner зураг</p>
+                                    <p className="text-[11px] text-slate-500 ml-2">Санал: 16:9 харьцаатай зураг (жишээ нь 1600x900) хамгийн сайн тохирно.</p>
                                     {bannerPreview ? (
                                         <div className="relative group rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-lg shadow-emerald-500/10">
                                             <img src={bannerPreview} className="w-full h-32 object-cover" />
@@ -450,28 +617,31 @@ export default function PartnerRegisterPage() {
                             </div>
                         </div>
 
-                        <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-white space-y-6">
-                            <h3 className="text-lg font-black flex items-center gap-2 uppercase italic text-emerald-900 tracking-tighter">
-                                <ReceiptText size={20} className="text-emerald-600" /> Төлбөрийн багц
-                            </h3>
-                            <div className="space-y-3">
-                                <label className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-slate-50">
-                                    <input type="radio" value="monthly" {...register("billingPlan")} className="mt-1" />
-                                    <span>
-                                        <span className="block font-black text-slate-800">1 сар — {formatMnt(BILLING_OPTIONS.monthly.amount)}</span>
-                                        <span className="text-xs text-slate-500">Сарын багц төлбөр</span>
-                                    </span>
-                                </label>
-                                <label className="flex items-start gap-3 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
-                                    <input type="radio" value="yearly" {...register("billingPlan")} className="mt-1" />
-                                    <span>
-                                        <span className="block font-black text-emerald-800">1 жил — {formatMnt(BILLING_OPTIONS.yearly.amount)}</span>
-                                        <span className="text-xs text-emerald-700">17% хэмнэлт</span>
-                                    </span>
-                                </label>
+                        {!existingPartner && (
+                            <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-white space-y-6">
+                                <h3 className="text-lg font-black flex items-center gap-2 uppercase italic text-emerald-900 tracking-tighter">
+                                    <ReceiptText size={20} className="text-emerald-600" /> Төлбөрийн багц
+                                </h3>
+                                <div className="space-y-3">
+                                    <label className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-slate-50">
+                                        <input type="radio" value="monthly" {...register("billingPlan")} className="mt-1" />
+                                        <span>
+                                            <span className="block font-black text-slate-800">1 сар — {formatMnt(BILLING_OPTIONS.monthly.amount)}</span>
+                                            <span className="text-xs text-slate-500">Сарын багц төлбөр</span>
+                                        </span>
+                                    </label>
+                                    <label className="flex items-start gap-3 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
+                                        <input type="radio" value="yearly" {...register("billingPlan")} className="mt-1" />
+                                        <span>
+                                            <span className="block font-black text-emerald-800">1 жил — {formatMnt(BILLING_OPTIONS.yearly.amount)}</span>
+                                            <span className="text-xs text-emerald-700">17% хэмнэлт</span>
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
+                        {!existingPartner && (
                         <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-white space-y-4">
                             <h3 className="text-lg font-black flex items-center gap-2 uppercase italic text-emerald-900 tracking-tighter">
                                 <FileCheck size={20} className="text-emerald-600" /> Гэрээ ба баталгаажуулалт
@@ -546,6 +716,7 @@ export default function PartnerRegisterPage() {
                                 </div>
                             </div>
                         </div>
+                        )}
 
                     </div>
 
@@ -558,9 +729,11 @@ export default function PartnerRegisterPage() {
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 Илгээж байна...
                             </div>
-                        ) : "Бүртгүүлэх"}
+                        ) : existingPartner ? "Шинэчлэлт хадгалах" : "Бүртгүүлэх"}
                     </Button>
                 </form>
+                </>
+                )}
             </div>
         </div>
     );

@@ -1,18 +1,65 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { 
   User, Mail, Bookmark, Trash2, ShieldAlert, ArrowRight,
-  GraduationCap, Clock
+  GraduationCap, Clock, Building2, ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 
+type PartnerProfile = {
+  id: string;
+  name?: string;
+  description?: string;
+  link?: string;
+  email?: string;
+  phone?: string;
+  logo?: string;
+};
+
 export default function ProfilePage() {
   const { user, savedItems, deleteAccount, toggleSave, loading } = useAuth();
+  const [partnerLoading, setPartnerLoading] = useState(true);
+  const [approvedPartner, setApprovedPartner] = useState<PartnerProfile | null>(null);
 
-  if (loading) return <div className="h-screen flex items-center justify-center font-black uppercase text-slate-400">Ачааллаж байна...</div>;
+  useEffect(() => {
+    const loadPartnerProfile = async () => {
+      if (!user) {
+        setApprovedPartner(null);
+        setPartnerLoading(false);
+        return;
+      }
+      setPartnerLoading(true);
+      try {
+        const partnerQuery = query(
+          collection(db, "partners"),
+          where("ownerUid", "==", user.uid),
+          where("approved", "==", true),
+          limit(1)
+        );
+        const partnerSnap = await getDocs(partnerQuery);
+        if (partnerSnap.empty) {
+          setApprovedPartner(null);
+        } else {
+          const doc = partnerSnap.docs[0];
+          setApprovedPartner({ id: doc.id, ...(doc.data() as Omit<PartnerProfile, "id">) });
+        }
+      } catch (err) {
+        console.error("Partner profile load error:", err);
+        setApprovedPartner(null);
+      } finally {
+        setPartnerLoading(false);
+      }
+    };
+    void loadPartnerProfile();
+  }, [user]);
+
+  if (loading || partnerLoading) return <div className="h-screen flex items-center justify-center font-black uppercase text-slate-400">Ачааллаж байна...</div>;
 
   if (!user) return (
     <div className="h-screen flex flex-col items-center justify-center space-y-6">
@@ -22,6 +69,54 @@ export default function ProfilePage() {
       </Link>
     </div>
   );
+
+  if (approvedPartner) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] py-20 px-6 md:px-12">
+        <div className="max-w-4xl mx-auto space-y-10">
+          <div className="bg-white rounded-[2.5rem] shadow-xl border border-white p-10">
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-3">Partner Dashboard</p>
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              <div className="w-24 h-24 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
+                {approvedPartner.logo ? (
+                  <img src={approvedPartner.logo} alt={approvedPartner.name || "Partner"} className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 size={36} className="text-emerald-600" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h1 className="text-4xl font-black text-slate-900 italic tracking-tight">{approvedPartner.name || "Partner"}</h1>
+                <p className="text-slate-500 mt-2">{approvedPartner.description || "Танилцуулга нэмэгдээгүй байна."}</p>
+              </div>
+            </div>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-slate-50 rounded-2xl p-4">
+                <p className="text-slate-400 text-xs font-bold uppercase mb-1">Холбоо барих имэйл</p>
+                <p className="font-semibold text-slate-700">{approvedPartner.email || user.email}</p>
+              </div>
+              <div className="bg-slate-50 rounded-2xl p-4">
+                <p className="text-slate-400 text-xs font-bold uppercase mb-1">Утас</p>
+                <p className="font-semibold text-slate-700">{approvedPartner.phone || "Мэдээлэлгүй"}</p>
+              </div>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href={`/partners/${approvedPartner.id}`}>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-6 h-12 font-bold">
+                  <ExternalLink size={16} className="mr-2" />
+                  Партнер хуудсаа харах
+                </Button>
+              </Link>
+              <Link href="/partners/register">
+                <Button variant="outline" className="rounded-2xl px-6 h-12 font-bold">
+                  Партнер мэдээллээ шинэчлэх
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-20 px-6 md:px-12">

@@ -137,10 +137,10 @@ export default function CoursesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredData.map((partner) => (
                         <div key={partner.id} className="bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
-                            <div className="relative h-56 overflow-hidden">
+                            <div className="relative h-56 overflow-hidden bg-slate-100">
                                 <img
                                     src={partner.featuredImage}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                                     alt={partner.name}
                                 />
                                 <div className="absolute top-4 left-4 flex flex-wrap gap-2">

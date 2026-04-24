@@ -74,11 +74,11 @@ export default function PartnerDetailPage() {
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
             {/* Header Banner */}
-            <div className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden">
+            <div className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
                 <img 
                     src={partner.featuredImage} 
                     alt={partner.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                 />
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
                 
