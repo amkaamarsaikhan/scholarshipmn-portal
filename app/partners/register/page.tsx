@@ -9,15 +9,16 @@ import { Button } from "@/components/ui/button";
 import { 
     Building2, 
     Image as ImageIcon, 
-    Phone, 
     Mail, 
     CheckCircle2,
     UploadCloud,
-    Globe2,
     AlertCircle,
     FileCheck,
     X,
-    Eye
+    Eye,
+    ChevronDown,
+    PenLine,
+    ReceiptText
 } from 'lucide-react';
 
 const SUPPORTED_COUNTRIES = [
@@ -38,14 +39,108 @@ interface PartnerFormValues {
     selectedCountries: string[];
     logo: FileList;
     featuredImage: FileList;
+    contractAccepted: boolean;
+    eSignature: string;
+    billingPlan: "monthly" | "yearly";
+}
+
+const BILLING_OPTIONS = {
+    monthly: { label: "1 сар", amount: 100000, discountLabel: "" },
+    yearly: { label: "1 жил", amount: 1000000, discountLabel: "17% хэмнэлт" },
+} as const;
+
+type InvoiceData = {
+    invoiceNumber: string;
+    amount: number;
+    billingPlanLabel: string;
+    partnerName: string;
+    partnerEmail: string;
+    issuedAtISO: string;
+    signature: string;
+};
+
+function generateInvoiceNumber() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    const random = Math.floor(10000 + Math.random() * 90000);
+    return `INV-${y}${m}${d}-${random}`;
+}
+
+function formatMnt(amount: number) {
+    return `${amount.toLocaleString("mn-MN")}₮`;
+}
+
+function escapeHtml(input: string) {
+    return input
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function downloadInvoicePdf(invoice: InvoiceData) {
+    const issued = new Date(invoice.issuedAtISO).toLocaleString("mn-MN");
+    const html = `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${invoice.invoiceNumber}</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #0f172a; margin: 32px; }
+    .box { border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; }
+    h1 { margin: 0 0 8px; color: #047857; }
+    .muted { color: #64748b; font-size: 12px; }
+    .row { margin: 8px 0; }
+    .label { display: inline-block; width: 170px; font-weight: 700; }
+    .amount { margin-top: 16px; padding: 12px; background: #ecfdf5; border-radius: 8px; font-weight: 700; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>ScholarshipMN Partner Invoice</h1>
+    <p class="muted">Invoice Number: ${escapeHtml(invoice.invoiceNumber)}</p>
+    <div class="row"><span class="label">Түнш байгууллага:</span> ${escapeHtml(invoice.partnerName)}</div>
+    <div class="row"><span class="label">И-мэйл:</span> ${escapeHtml(invoice.partnerEmail)}</div>
+    <div class="row"><span class="label">Багц:</span> ${escapeHtml(invoice.billingPlanLabel)}</div>
+    <div class="row"><span class="label">Үүсгэсэн огноо:</span> ${escapeHtml(issued)}</div>
+    <div class="row"><span class="label">Цахим гарын үсэг:</span> ${escapeHtml(invoice.signature)}</div>
+    <div class="amount">Төлөх дүн: ${escapeHtml(formatMnt(invoice.amount))}</div>
+    <p class="muted" style="margin-top: 20px;">
+      Данс: MN810015001105591438 | Голомт банк | А.Амаржаргал
+    </p>
+  </div>
+  <script>window.print();</script>
+</body>
+</html>
+`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, "_blank");
+    if (!w) {
+        alert("PDF нээх боломжгүй байна. Browser popup тохиргоогоо шалгана уу.");
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
 }
 
 export default function PartnerRegisterPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showContractDetails, setShowContractDetails] = useState(false);
+    const [savedInvoice, setSavedInvoice] = useState<InvoiceData | null>(null);
 
-    const { register, handleSubmit, reset, watch, setValue } = useForm<PartnerFormValues>();
+    const { register, handleSubmit, reset, watch, setValue } = useForm<PartnerFormValues>({
+        defaultValues: {
+            billingPlan: "monthly",
+            contractAccepted: false,
+            eSignature: "",
+        },
+    });
 
     // Сонгосон файлуудыг хянах
     const watchedLogo = watch("logo");
@@ -91,6 +186,14 @@ export default function PartnerRegisterPage() {
             setError("Наад зах нь нэг чиглэл сонгоно уу!");
             return;
         }
+        if (!data.contractAccepted) {
+            setError("Гэрээг зөвшөөрөх шаардлагатай.");
+            return;
+        }
+        if (!data.eSignature?.trim()) {
+            setError("Цахим гарын үсгээ оруулна уу.");
+            return;
+        }
 
         setLoading(true);
         try {
@@ -100,7 +203,7 @@ export default function PartnerRegisterPage() {
             if (data.logo?.[0]) logoUrl = await uploadFile(data.logo[0], "logos");
             if (data.featuredImage?.[0]) featuredImageUrl = await uploadFile(data.featuredImage[0], "banners");
 
-            await addDoc(collection(db, "partners"), {
+            const partnerRef = await addDoc(collection(db, "partners"), {
                 name: data.name,
                 email: data.email,
                 phone: data.phone,
@@ -110,9 +213,36 @@ export default function PartnerRegisterPage() {
                 logo: logoUrl,
                 featuredImage: featuredImageUrl,
                 approved: false,
+                contractAccepted: true,
+                eSignature: data.eSignature.trim(),
+                billingPlan: data.billingPlan,
                 createdAt: serverTimestamp(),
             });
 
+            const selectedPlan = BILLING_OPTIONS[data.billingPlan];
+            const invoiceNumber = generateInvoiceNumber();
+            const issuedAtISO = new Date().toISOString();
+            const invoicePayload: InvoiceData = {
+                invoiceNumber,
+                amount: selectedPlan.amount,
+                billingPlanLabel: `${selectedPlan.label}${selectedPlan.discountLabel ? ` (${selectedPlan.discountLabel})` : ""}`,
+                partnerName: data.name,
+                partnerEmail: data.email,
+                issuedAtISO,
+                signature: data.eSignature.trim(),
+            };
+
+            await addDoc(collection(db, "partnerInvoices"), {
+                ...invoicePayload,
+                partnerId: partnerRef.id,
+                bankAccount: "MN810015001105591438",
+                bankName: "ГОЛОМТ БАНК",
+                receiverName: "А.Амаржаргал",
+                status: "unpaid",
+                createdAt: serverTimestamp(),
+            });
+
+            setSavedInvoice(invoicePayload);
             setSuccess(true);
             reset();
         } catch (err: any) {
@@ -131,6 +261,21 @@ export default function PartnerRegisterPage() {
                     </div>
                     <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter">Хүсэлт илгээгдлээ!</h2>
                     <p className="text-slate-500 mb-8 font-bold">Админ хянаад тантай эргэн холбогдох болно.</p>
+                    {savedInvoice && (
+                        <div className="mb-8 text-left bg-emerald-50 border border-emerald-100 p-5 rounded-2xl">
+                            <p className="text-xs font-black text-emerald-700 mb-2 uppercase">Invoice</p>
+                            <p className="text-sm font-bold text-slate-700">№ {savedInvoice.invoiceNumber}</p>
+                            <p className="text-sm text-slate-600">Төлөх дүн: {formatMnt(savedInvoice.amount)}</p>
+                            <Button
+                                type="button"
+                                onClick={() => downloadInvoicePdf(savedInvoice)}
+                                className="mt-3 w-full bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-xl font-black"
+                            >
+                                <ReceiptText size={16} className="mr-2" />
+                                PDF нэхэмжлэл татах
+                            </Button>
+                        </div>
+                    )}
                     <Button onClick={() => window.location.href = "/"} className="bg-emerald-600 hover:bg-emerald-700 text-white px-10 h-16 rounded-2xl font-black uppercase italic tracking-widest shadow-lg shadow-emerald-200">
                         Нүүр хуудас
                     </Button>
@@ -237,6 +382,88 @@ export default function PartnerRegisterPage() {
                                             <input {...register("featuredImage")} type="file" accept="image/*" className="hidden" />
                                         </label>
                                     )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-white space-y-6">
+                            <h3 className="text-lg font-black flex items-center gap-2 uppercase italic text-emerald-900 tracking-tighter">
+                                <ReceiptText size={20} className="text-emerald-600" /> Төлбөрийн багц
+                            </h3>
+                            <div className="space-y-3">
+                                <label className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 bg-slate-50">
+                                    <input type="radio" value="monthly" {...register("billingPlan")} className="mt-1" />
+                                    <span>
+                                        <span className="block font-black text-slate-800">1 сар — {formatMnt(BILLING_OPTIONS.monthly.amount)}</span>
+                                        <span className="text-xs text-slate-500">Сарын багц төлбөр</span>
+                                    </span>
+                                </label>
+                                <label className="flex items-start gap-3 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
+                                    <input type="radio" value="yearly" {...register("billingPlan")} className="mt-1" />
+                                    <span>
+                                        <span className="block font-black text-emerald-800">1 жил — {formatMnt(BILLING_OPTIONS.yearly.amount)}</span>
+                                        <span className="text-xs text-emerald-700">17% хэмнэлт</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-white space-y-4">
+                            <h3 className="text-lg font-black flex items-center gap-2 uppercase italic text-emerald-900 tracking-tighter">
+                                <FileCheck size={20} className="text-emerald-600" /> Гэрээ ба баталгаажуулалт
+                            </h3>
+                            <label className="flex items-start gap-3 text-sm text-slate-700">
+                                <input type="checkbox" {...register("contractAccepted")} className="mt-1" />
+                                <span>Гэрээний нөхцөлийг зөвшөөрөв.</span>
+                            </label>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowContractDetails((v) => !v)}
+                                className="w-full text-left flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
+                            >
+                                <span className="font-bold text-slate-700">Гэрээг дэлгэрэнгүй харах</span>
+                                <ChevronDown size={16} className={`transition-transform ${showContractDetails ? "rotate-180" : ""}`} />
+                            </button>
+
+                            {showContractDetails && (
+                                <div className="text-xs leading-6 text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-4 max-h-64 overflow-auto">
+                                    <p><b>Нэг. Ерөнхий зүйл</b></p>
+                                    <p><b>1.1.</b> Нэг талаас ScholarshipMN.academy платформыг өмчлөгч, иргэн А.Амаржаргал (РД: 86012765) (цаашид “Платформ” гэх), нөгөө талаас Түнш (цаашид “Түнш” гэх) нар харилцан тохиролцож, оюутан залууст боловсролын боломж, тэтгэлэг, сургалтын мэдээллийг хүргэх зорилгоор энэхүү гэрээг байгуулав.</p>
+                                    <p><b>Хоёр. Платформын эрх, үүрэг</b></p>
+                                    <p><b>2.1.</b> Платформ нь Түншээс ирүүлсэн мэдээллийг өөрийн вэбсайт болон сошиал сувгуудаар тохиролцсон хугацаанд байршуулна.</p>
+                                    <p><b>2.2.</b> Платформ нь Түншийн мэдээллийг өөрчлөхгүйгээр нийтлэх үүрэгтэй. Гэвч найруулга, дизайны алдаатай мэдээллийг засахыг шаардах эрхтэй.</p>
+                                    <p><b>2.3.</b> Хамгаалалт: Платформ нь Түншийн оруулсан мэдээллийн агуулга, тэтгэлгийн бодит байдал болон Түнш байгууллагын үйлчилгээнээс үүдэх аливаа хариуцлагыг хүлээхгүй.</p>
+                                    <p><b>Гурав. Түнш байгууллагын эрх, үүрэг</b></p>
+                                    <p><b>3.1.</b> Түнш нь Платформд нийлүүлж буй бүх мэдээлэл (сургалтын хөтөлбөр, тэтгэлгийн нөхцөл, хаяг байршил) нь үнэн зөв, бодит байхыг бүрэн хариуцна.</p>
+                                    <p><b>3.2.</b> Түнш нь Платформын лого, оюуны өмчийг зөвшөөрөлгүйгээр гуравдагч талд ашиглуулахгүй байх үүрэгтэй.</p>
+                                    <p><b>3.3.</b> Түнш нь Платформоор дамжуулан бүртгүүлсэн оюутнуудын хувийн мэдээллийг (Lead) зөвхөн сургалтын зорилгоор ашиглах ба бусдад дамжуулах, задруулахыг хатуу хориглоно.</p>
+                                    <p><b>Дөрөв. Төлбөр тооцоо ба Хугацаа</b></p>
+                                    <p><b>4.1.</b> Хамтын ажиллагааны үйлчилгээний төлбөр нь сарын 100,000 (нэг зуун мянга) төгрөг байна.</p>
+                                    <p><b>4.2.</b> Түнш нь үйлчилгээний төлбөрийг 12 сараар (нэг жил) багцлан урьдчилж төлсөн тохиолдолд жилийн нийт төлбөр 1,000,000 (нэг сая) төгрөг байна.</p>
+                                    <p><b>4.3.</b> Түнш нь сонгосон багцын төлбөрийг Платформ эзэмшигчийн нэхэмжлэлийн дагуу ажлын 3 хоногт багтаан доорх дансанд шилжүүлнэ:</p>
+                                    <p>Хүлээн авагч данс: MN810015001105591438</p>
+                                    <p>Банкны нэр: ГОЛОМТ БАНК</p>
+                                    <p>Хүлээн авагчийн нэр: А.Амаржаргал</p>
+                                    <p><b>4.4.</b> Төлбөр шилжсэнээр гэрээ хүчин төгөлдөр болж, мэдээлэл байршуулах хугацаа тоологдож эхэлнэ.</p>
+                                    <p><b>Тав. Хариуцлага ба Гэрээ цуцлах</b></p>
+                                    <p><b>5.1.</b> Түнш нь худал мэдээлэл өгсөн, эсвэл оюутан залуусыг хохироосон үйлдэл гаргавал Платформ нь гэрээг нэг талын санаачилгаар шууд цуцалж, мэдээллийг устгах эрхтэй. Энэ тохиолдолд урьдчилж төлсөн төлбөрийг буцаан олгохгүй.</p>
+                                    <p><b>5.2.</b> Платформ нь иргэний өмчлөлд суурилсан тул техникийн саатал (сервер унах, давагдашгүй хүчин зүйл) тохиолдоход Платформ хариуцлага хүлээхгүй боловч алдааг засварлах үүрэг хүлээнэ.</p>
+                                    <p><b>Зургаа. Нууцлал</b></p>
+                                    <p><b>6.1.</b> Талууд гэрээний хүрээнд олж авсан бизнесийн болон хэрэглэгчдийн хувийн мэдээллийг гэрээ дууссанаас хойш 2 жилийн хугацаанд чандлан хадгална.</p>
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400 ml-2 italic tracking-widest">Цахим гарын үсэг</label>
+                                <div className="relative">
+                                    <PenLine size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        {...register("eSignature")}
+                                        required
+                                        className="w-full h-12 pl-10 pr-4 bg-slate-50 rounded-xl outline-none font-medium text-sm"
+                                        placeholder="Нэр, овог (ж: А.Амараа)"
+                                    />
                                 </div>
                             </div>
                         </div>
