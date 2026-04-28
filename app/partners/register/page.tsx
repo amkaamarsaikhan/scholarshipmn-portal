@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { sendEmailVerification } from "firebase/auth";
 import { auth, db, storage } from "@/lib/firebase";
@@ -506,11 +507,22 @@ export default function PartnerRegisterPage() {
                     <div className="text-center py-20 text-slate-400 font-bold">Партнер мэдээлэл ачааллаж байна...</div>
                 ) : (
                 <>
-                <div className="text-center mb-16">
-                    <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase mb-4 italic">
+                <section className="text-center mb-16" aria-labelledby="partner-register-title">
+                    <h1 id="partner-register-title" className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase mb-4 italic">
                         Партнер <span className="text-emerald-600">{existingPartner ? "мэдээлэл шинэчлэх" : "болох"}</span>
                     </h1>
-                </div>
+                    <p className="text-slate-500 font-medium max-w-2xl mx-auto">
+                        Байгууллагын профайлаа бөглөж илгээсний дараа админ баг хянаж баталгаажуулна. Мөн{" "}
+                        <Link href="/about" className="text-emerald-700 underline underline-offset-4">
+                            Бидний тухай
+                        </Link>{" "}
+                        болон{" "}
+                        <Link href="/privacy" className="text-emerald-700 underline underline-offset-4">
+                            Нууцлалын бодлого
+                        </Link>
+                        -той танилцана уу.
+                    </p>
+                </section>
 
                 {error && (
                     <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center gap-3 font-bold text-sm italic">
@@ -531,7 +543,7 @@ export default function PartnerRegisterPage() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" aria-label="Партнер бүртгэлийн маягт">
                     {/* Байгууллагын үндсэн мэдээлэл */}
                     <div className="bg-white p-10 rounded-[3rem] shadow-xl border border-white space-y-8">
                         <h3 className="text-xl font-black flex items-center gap-3 uppercase italic text-emerald-900 tracking-tighter">
@@ -581,7 +593,12 @@ export default function PartnerRegisterPage() {
                                     <p className="text-[10px] font-black uppercase text-slate-400 italic tracking-widest ml-2">Байгууллагын Лого</p>
                                     {logoPreview ? (
                                         <div className="relative group rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-lg shadow-emerald-500/10">
-                                            <img src={logoPreview} className="w-full h-32 object-cover" />
+                                            <img
+                                                src={logoPreview}
+                                                alt="Байгууллагын лого урьдчилж харах зураг"
+                                                loading="lazy"
+                                                className="w-full h-32 object-cover"
+                                            />
                                             <div className="absolute inset-0 bg-emerald-600/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                                                 <button type="button" onClick={() => setValue("logo", [] as any)} className="bg-white text-emerald-600 p-2 rounded-full hover:scale-110 transition-transform"><X size={20}/></button>
                                             </div>
@@ -601,7 +618,12 @@ export default function PartnerRegisterPage() {
                                     <p className="text-[11px] text-slate-500 ml-2">Санал: 16:9 харьцаатай зураг (жишээ нь 1600x900) хамгийн сайн тохирно.</p>
                                     {bannerPreview ? (
                                         <div className="relative group rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-lg shadow-emerald-500/10">
-                                            <img src={bannerPreview} className="w-full h-32 object-cover" />
+                                            <img
+                                                src={bannerPreview}
+                                                alt="Партнер байгууллагын баннер урьдчилж харах зураг"
+                                                loading="lazy"
+                                                className="w-full h-32 object-cover"
+                                            />
                                             <div className="absolute inset-0 bg-emerald-600/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                                                 <button type="button" onClick={() => setValue("featuredImage", [] as any)} className="bg-white text-emerald-600 p-2 rounded-full hover:scale-110 transition-transform"><X size={20}/></button>
                                             </div>

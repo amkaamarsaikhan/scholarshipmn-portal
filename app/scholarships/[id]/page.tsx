@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from "@/lib/firebase";
+import Image from "next/image";
 import {
   doc,
   getDoc,
@@ -243,7 +244,14 @@ export default function ScholarshipDetailsPage() {
                     <div key={partner.id} className="bg-white p-6 rounded-3xl border border-emerald-100/50 hover:shadow-xl hover:shadow-emerald-900/5 transition-all group">
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 bg-slate-50 rounded-xl overflow-hidden border border-slate-100">
-                          <img src={partner.logo} alt={partner.name} className="w-full h-full object-cover" />
+                          <Image
+                            src={partner.logo}
+                            alt={`${partner.name} лого`}
+                            width={48}
+                            height={48}
+                            sizes="48px"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <Badge className="bg-emerald-500 text-white border-none text-[10px] font-bold">PARTNER</Badge>
                       </div>

@@ -4,8 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
-import { Analytics } from "@vercel/analytics/next";
-import { FirebaseAnalytics } from "@/components/FirebaseAnalytics";
+import ClientAnalytics from "@/components/ClientAnalytics";
 
 // Font тохиргоо
 const inter = Inter({
@@ -20,8 +19,39 @@ const playfair = Playfair_Display({
 
 // Энэ хэсэг ганцхан удаа байх ёстой:
 export const metadata: Metadata = {
-  title: "Scholarship MN Academy | Тэтгэлгийн гүүр",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://scholarshipmn.academy"),
+  title: {
+    default: "Scholarship MN Academy | Тэтгэлгийн гүүр",
+    template: "%s | Scholarship MN Academy",
+  },
   description: "Монгол залууст зориулсан гадаад, дотоодын тэтгэлэг болон менторшип хөтөлбөрүүд.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Scholarship MN Academy | Тэтгэлгийн гүүр",
+    description: "Монгол залууст зориулсан гадаад, дотоодын тэтгэлэг болон менторшип хөтөлбөрүүд.",
+    url: "/",
+    siteName: "Scholarship MN Academy",
+    locale: "mn_MN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Scholarship MN Academy | Тэтгэлгийн гүүр",
+    description: "Монгол залууст зориулсан гадаад, дотоодын тэтгэлэг болон менторшип хөтөлбөрүүд.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -41,8 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </AuthProvider>
-        <Analytics />
-        <FirebaseAnalytics />
+        <ClientAnalytics />
       </body>
     </html>
   );

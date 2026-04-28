@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -79,7 +80,14 @@ export default function ProfilePage() {
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="w-24 h-24 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
                 {approvedPartner.logo ? (
-                  <img src={approvedPartner.logo} alt={approvedPartner.name || "Partner"} className="w-full h-full object-cover" />
+                  <Image
+                    src={approvedPartner.logo}
+                    alt={approvedPartner.name || "Partner"}
+                    width={96}
+                    height={96}
+                    sizes="96px"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <Building2 size={36} className="text-emerald-600" />
                 )}
@@ -126,7 +134,14 @@ export default function ProfilePage() {
         <div className="flex flex-col md:flex-row items-center gap-10">
           <div className="w-32 h-32 bg-white rounded-[2.5rem] shadow-2xl flex items-center justify-center border-4 border-white overflow-hidden">
             {user.photoURL ? (
-              <img src={user.photoURL} className="w-full h-full object-cover" />
+              <Image
+                src={user.photoURL}
+                alt={user.displayName || "User"}
+                width={128}
+                height={128}
+                sizes="128px"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <User size={50} className="text-emerald-600" />
             )}

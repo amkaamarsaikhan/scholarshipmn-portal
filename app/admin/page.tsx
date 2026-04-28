@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { 
@@ -274,7 +275,14 @@ export default function AdminDashboard() {
               )}>
                 <CardContent className="p-8">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                    <img src={partner.logo} className="w-20 h-20 rounded-3xl object-cover shadow-lg border-4 border-white" />
+                    <Image
+                      src={partner.logo || "/favicon.ico"}
+                      alt={`${partner.name || "Partner"} лого`}
+                      width={80}
+                      height={80}
+                      sizes="80px"
+                      className="w-20 h-20 rounded-3xl object-cover shadow-lg border-4 border-white"
+                    />
                     <div className="flex-1 space-y-3 text-center sm:text-left">
                       <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
                         <h3 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">{partner.name}</h3>

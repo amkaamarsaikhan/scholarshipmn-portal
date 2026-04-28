@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen, MessageSquare, CalendarCheck } from "lucide-react";
@@ -140,7 +141,14 @@ export default function Home() {
             transition={{ duration: 1.5 }} 
             className="absolute inset-0 z-0"
           >
-            <img src={HERO_SLIDES[current].image} alt="Background" className="w-full h-full object-cover" />
+            <Image
+              src={HERO_SLIDES[current].image}
+              alt={HERO_SLIDES[current].title}
+              fill
+              priority={current === 0}
+              sizes="100vw"
+              className="object-cover"
+            />
           </motion.div>
         </AnimatePresence>
         

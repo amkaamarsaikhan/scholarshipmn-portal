@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { collection, query, getDocs } from "firebase/firestore";
 import {
@@ -138,10 +139,12 @@ export default function CoursesPage() {
                     {filteredData.map((partner) => (
                         <div key={partner.id} className="bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
                             <div className="relative h-56 overflow-hidden bg-slate-100">
-                                <img
-                                    src={partner.featuredImage}
+                                <Image
+                                    src={partner.featuredImage || "/hero1.png"}
+                                    alt={partner.name || "Partner featured image"}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                                    alt={partner.name}
                                 />
                                 <div className="absolute top-4 left-4 flex flex-wrap gap-2">
                                     {partner.targetCountries?.filter((tag: string) => COURSE_TAGS.includes(tag)).map((tag: string) => (
@@ -154,7 +157,14 @@ export default function CoursesPage() {
 
                             <div className="p-8">
                                 <div className="flex items-center gap-4 mb-6">
-                                    <img src={partner.logo} className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-gray-100" alt="logo" />
+                                    <Image
+                                        src={partner.logo || "/favicon.ico"}
+                                        alt={partner.name ? `${partner.name} лого` : "Partner logo"}
+                                        width={48}
+                                        height={48}
+                                        sizes="48px"
+                                        className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-gray-100"
+                                    />
                                     <div>
                                         <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1 italic">Бүртгэлтэй партнер</h4>
                                         <span className="text-xl font-black text-slate-900 leading-none tracking-tighter uppercase italic">{partner.name}</span>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { 
@@ -75,10 +76,13 @@ export default function PartnerDetailPage() {
         <div className="min-h-screen bg-[#F8FAFC]">
             {/* Header Banner */}
             <div className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
-                <img 
-                    src={partner.featuredImage} 
-                    alt={partner.name}
-                    className="w-full h-full object-contain"
+                <Image
+                    src={partner.featuredImage}
+                    alt={`${partner.name} байгууллагын нүүр зураг`}
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-contain"
                 />
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
                 
@@ -89,7 +93,14 @@ export default function PartnerDetailPage() {
                         </Link>
                         <div className="flex flex-col md:flex-row md:items-end gap-6">
                             <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2rem] p-1 shadow-2xl overflow-hidden border-4 border-white">
-                                <img src={partner.logo} alt="logo" className="w-full h-full object-cover rounded-[1.8rem]" />
+                                <Image
+                                    src={partner.logo}
+                                    alt={`${partner.name} лого`}
+                                    width={128}
+                                    height={128}
+                                    sizes="(max-width: 768px) 96px, 128px"
+                                    className="w-full h-full object-cover rounded-[1.8rem]"
+                                />
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">

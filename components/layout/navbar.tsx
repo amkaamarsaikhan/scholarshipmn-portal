@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { 
     Menu, X, User as UserIcon, PlusCircle, Home, 
@@ -124,7 +125,16 @@ const Navbar = () => {
                                                     </span>
                                                 </div>
                                                 <div className="w-10 h-10 rounded-2xl border-2 border-emerald-500 overflow-hidden shadow-lg shadow-emerald-500/10 transition-transform group-hover:scale-105 active:scale-95">
-                                                    {user.photoURL ? <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" /> : <div className="bg-emerald-500 w-full h-full flex items-center justify-center text-white"><UserIcon size={20} /></div>}
+                                                    {user.photoURL ? (
+                                                        <Image
+                                                            src={user.photoURL}
+                                                            alt="Profile"
+                                                            width={40}
+                                                            height={40}
+                                                            sizes="40px"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : <div className="bg-emerald-500 w-full h-full flex items-center justify-center text-white"><UserIcon size={20} /></div>}
                                                 </div>
                                             </div>
                                         </DropdownMenuTrigger>
@@ -177,7 +187,16 @@ const Navbar = () => {
                         {user && (
                             <div className="mb-10 p-4 bg-emerald-50 rounded-3xl flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-emerald-500">
-                                    {user.photoURL ? <img src={user.photoURL} className="w-full h-full object-cover" /> : <div className="bg-emerald-500 w-full h-full flex items-center justify-center text-white"><UserIcon size={20} /></div>}
+                                    {user.photoURL ? (
+                                        <Image
+                                            src={user.photoURL}
+                                            alt="Profile"
+                                            width={48}
+                                            height={48}
+                                            sizes="48px"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : <div className="bg-emerald-500 w-full h-full flex items-center justify-center text-white"><UserIcon size={20} /></div>}
                                 </div>
                                 <div className="flex flex-col overflow-hidden">
                                     <span className="font-black text-emerald-950 text-xs uppercase truncate">{user.displayName || "Хэрэглэгч"}</span>
