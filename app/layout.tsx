@@ -5,10 +5,11 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { AuthProvider } from "@/context/AuthContext";
 import ClientAnalytics from "@/components/ClientAnalytics";
+import AIChatBot from "@/components/AIChatBot";
 
 // Font тохиргоо
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   variable: "--font-sans"
 });
 
@@ -61,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <div className="flex min-h-screen">
             <div className="flex-1 flex flex-col min-w-0">
-              <header className="sticky top-0 z-30 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
+              <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-emerald-100">
                 <Navbar />
               </header>
               <main className="flex-1">
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Footer />
             </div>
           </div>
+          <AIChatBot />
         </AuthProvider>
         <ClientAnalytics />
       </body>

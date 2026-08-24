@@ -1,9 +1,61 @@
 import { NextResponse } from "next/server";
 
+type ChatMessage = { role?: string; content?: string };
+
 export async function POST(req: Request) {
     try {
         const apiKey = process.env.GEMINI_API_KEY;
-        const { message } = await req.json();
+        if (!apiKey) {
+            return NextResponse.json({ error: "API тохируулаагүй байна." }, { status: 500 });
+        }
+
+        const body = await req.json();
+
+        if (Array.isArray(body.messages)) {
+            const contents = (body.messages as ChatMessage[])
+                .filter((m) => typeof m?.content === "string" && m.content.trim())
+                .map((m) => ({
+                    role: m.role === "ai" || m.role === "model" ? "model" : "user",
+                    parts: [{ text: m.content as string }],
+                }));
+
+            if (contents.length === 0) {
+                return NextResponse.json({ content: "Асуултаа бичнэ үү." });
+            }
+
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        systemInstruction: {
+                            parts: [{
+                                text: `Чи Scholarship MN Academy-ийн туслах. Монгол хэлээр товч, ойлгомжтой хариул.
+Тэтгэлэг, улс сонголт, IELTS/TOPIK/HSK/JLPT, өргөдлийн материал, хугацаа зэрэгт зөвлөгөө өг.
+Байхгүй тэтгэлэг, баталгаатай ялалт амлаж болохгүй. Мэдэхгүй бол тэгж хэл.`,
+                            }],
+                        },
+                        contents,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+            const parts = data.candidates?.[0]?.content?.parts;
+            const text = Array.isArray(parts)
+                ? parts.map((p: { text?: string }) => p.text || "").join("").trim()
+                : "";
+
+            if (!text) {
+                return NextResponse.json({
+                    content: "Одоогоор хариу өгч чадсангүй. Дахин оролдоно уу.",
+                });
+            }
+            return NextResponse.json({ content: text });
+        }
+
+        const { message } = body;
 
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -52,18 +104,19 @@ export async function POST(req: Request) {
         );
 
         const data = await response.json();
-        
+
         if (!data.candidates || !data.candidates[0]) {
             return NextResponse.json({ isSearch: false });
         }
 
         const aiRawText = data.candidates[0].content.parts[0].text;
         const aiResponse = JSON.parse(aiRawText);
-        
+
         return NextResponse.json(aiResponse);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("AI API Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errMessage = error instanceof Error ? error.message : "Алдаа гарлаа";
+        return NextResponse.json({ error: errMessage }, { status: 500 });
     }
 }

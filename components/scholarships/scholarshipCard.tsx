@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { MapPin, ArrowRight, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
 import DeadlineTimer from "./DeadlineTimer";
 
 // Улсын далбаа — Firestore `country` талбарын утга (импортын нэртэй яг тааруулна)
@@ -75,7 +75,8 @@ interface Props {
 }
 
 const ScholarshipCard: React.FC<Props> = ({ item }) => {
-    const { toggleSave, isSaved } = useAuth();
+    const { user, toggleSave, isSaved } = useAuth();
+    const router = useRouter();
     const saved = isSaved(item.id);
 
     const flag = flagForCountry(item.country);
@@ -107,9 +108,16 @@ const ScholarshipCard: React.FC<Props> = ({ item }) => {
 
                 {/* Save Button */}
                 <button
+                    type="button"
+                    aria-label={saved ? "Хадгалснаас хасах" : "Тэтгэлэг хадгалах"}
                     onClick={(e) => {
                         e.preventDefault();
-                        toggleSave(item);
+                        e.stopPropagation();
+                        if (!user) {
+                            router.push("/auth/login");
+                            return;
+                        }
+                        void toggleSave(item);
                     }}
                     className={`
                      absolute top-6 right-6 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 z-30

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import AdminGuard from "@/components/admin/AdminGuard";
 
 export default function AddScholarshipPage() {
   const router = useRouter();
@@ -99,14 +100,13 @@ export default function AddScholarshipPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-20 px-6">
+    <AdminGuard>
+    <div className="min-h-screen bg-[#F8FAFC] py-12 px-6">
       <div className="max-w-4xl mx-auto">
-        {/* HEADER */}
-
         <div className="flex flex-col items-center text-center space-y-4 mb-12">
           <Badge className="bg-emerald-100 text-emerald-700 px-6 py-2 rounded-full font-bold uppercase text-[10px]">
             <Sparkles size={12} className="mr-2" />
-            Scholarship Creator
+            Тэтгэлэг нэмэх
           </Badge>
 
           <h1 className="text-5xl font-black text-slate-900 tracking-tight">
@@ -167,8 +167,8 @@ export default function AddScholarshipPage() {
                 {...register("category")}
                 className="h-10 w-full border rounded-lg px-3"
               >
-                <option value="Partial">Partial</option>
-                <option value="Full">Full</option>
+                <option value="Partial">Хэсэгчилсэн</option>
+                <option value="Full">Бүрэн</option>
               </select>
             </div>
 
@@ -202,9 +202,9 @@ export default function AddScholarshipPage() {
                   className="h-10 w-full border rounded-lg px-3 mt-1"
                 >
                   <option value="">— Сонгох —</option>
-                  <option value="Bachelor">Bachelor</option>
-                  <option value="Master">Master</option>
-                  <option value="PhD">PhD</option>
+                  <option value="Bachelor">Бакалавр</option>
+                  <option value="Master">Магистр</option>
+                  <option value="PhD">Доктор</option>
                 </select>
               </div>
               <div>
@@ -387,5 +387,6 @@ export default function AddScholarshipPage() {
         </form>
       </div>
     </div>
+    </AdminGuard>
   );
 }

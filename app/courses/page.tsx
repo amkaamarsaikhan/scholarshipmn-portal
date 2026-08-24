@@ -5,7 +5,6 @@ import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { collection, query, getDocs } from "firebase/firestore";
 import {
-    Star,
     Clock,
     ArrowRight,
     Loader2,
@@ -77,24 +76,16 @@ export default function CoursesPage() {
             } finally {
                 setLoading(false);
             }
-        };
+    };
 
-        fetchCoursePartners();
-    }, []);
+    fetchCoursePartners();
+  }, []);
 
-    const filterButtons = ["Бүгд", ...COURSE_TAGS];
+  const filterButtons = ["Бүгд", ...COURSE_TAGS];
 
-    const filteredData = activeFilter === "Бүгд"
+  const filteredData = activeFilter === "Бүгд"
         ? partners
         : partners.filter(p => p.targetCountries?.includes(activeFilter));
-
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="animate-spin text-emerald-600" size={40} />
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-gray-50/50">
@@ -135,6 +126,11 @@ export default function CoursesPage() {
                     </div>
                 </div>
 
+                {loading ? (
+                    <div className="flex justify-center py-24">
+                        <Loader2 className="animate-spin text-emerald-600" size={40} />
+                    </div>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredData.map((partner) => (
                         <div key={partner.id} className="bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
@@ -180,10 +176,6 @@ export default function CoursesPage() {
                                         <Clock size={14} />
                                         <span>Бүртгэл нээлттэй</span>
                                     </div>
-                                    <div className="flex items-center text-amber-400 gap-1 italic">
-                                        <Star size={14} fill="currentColor" />
-                                        <span className="text-slate-900 text-xs font-black">5.0</span>
-                                    </div>
                                 </div>
 
                                 <Link href={`/partners/${partner.id}`}>
@@ -195,8 +187,9 @@ export default function CoursesPage() {
                         </div>
                     ))}
                 </div>
+                )}
 
-                {filteredData.length === 0 && (
+                {!loading && filteredData.length === 0 && (
                     <div className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-gray-100">
                         <p className="text-gray-300 font-black uppercase italic tracking-[0.2em] text-sm">Одоогоор энэ чиглэлээр сургалт бүртгэгдээгүй байна.</p>
                     </div>

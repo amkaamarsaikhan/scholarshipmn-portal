@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
-    Facebook, Instagram, Twitter, Mail, MapPin, Phone, 
+    Mail, MapPin, Phone, 
     CheckCircle2, Loader2, Send 
 } from 'lucide-react';
 
@@ -78,13 +78,6 @@ const Footer = () => {
                         <p className="text-emerald-100/60 text-sm leading-relaxed">
                             Бид Монгол залууст дэлхийн шилдэг боловсрол эзэмших, тэтгэлэг авахад нь мэргэжлийн туслалцаа үзүүлж, ирээдүйн боломжийг нь нээж байна.
                         </p>
-                        <div className="flex gap-4">
-                            {[Facebook, Instagram, Twitter].map((Icon, idx) => (
-                                <a key={idx} href="#" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-emerald-500 transition-colors group">
-                                    <Icon size={18} className="text-emerald-100 group-hover:text-white" />
-                                </a>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Quick Links */}
@@ -93,6 +86,7 @@ const Footer = () => {
                         <ul className="space-y-4 text-emerald-100/60 text-sm font-medium">
                             <li><Link href="/" className="hover:text-emerald-400 transition-colors">Тэтгэлгүүд</Link></li>
                             <li><Link href="/courses" className="hover:text-emerald-400 transition-colors">Сургалтууд</Link></li>
+                            <li><Link href="/forum" className="hover:text-emerald-400 transition-colors">Форум</Link></li>
                             <li><Link href="/about" className="hover:text-emerald-400 transition-colors">Бидний тухай</Link></li>
                         </ul>
                     </div>
@@ -142,6 +136,7 @@ const Footer = () => {
                                     <button 
                                         type="submit"
                                         disabled={loading}
+                                        aria-label="Мэдээлэл авах бүртгүүлэх"
                                         className="absolute right-2 top-2 bottom-2 bg-emerald-500 hover:bg-emerald-400 text-white px-4 rounded-lg transition-all flex items-center justify-center disabled:opacity-70"
                                     >
                                         {loading ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>}

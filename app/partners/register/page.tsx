@@ -501,7 +501,7 @@ export default function PartnerRegisterPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pt-32 pb-20 px-6">
+        <div className="min-h-screen bg-[#F8FAFC] py-12 pb-20 px-6">
             <div className="max-w-5xl mx-auto">
                 {isPreloadingPartner ? (
                     <div className="text-center py-20 text-slate-400 font-bold">Партнер мэдээлэл ачааллаж байна...</div>

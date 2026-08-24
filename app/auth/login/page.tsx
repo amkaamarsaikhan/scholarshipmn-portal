@@ -62,12 +62,12 @@ export default function LoginPage() {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         if (userData.role === "admin") {
-          router.push("/admin/add"); 
+          router.push("/admin");
         } else {
-          router.push("/"); // Эсвэл /profile
+          router.push("/");
         }
       } else {
-        router.push("/complete-profile");
+        router.push("/");
       }
     } catch (err: any) {
       setError("И-мэйл эсвэл нууц үг буруу байна.");
@@ -75,7 +75,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-8 bg-white border border-emerald-50 rounded-[2.5rem] shadow-2xl shadow-emerald-900/5">
+    <div className="max-w-md mx-auto py-16 px-6">
+    <div className="p-8 bg-white border border-emerald-50 rounded-[2.5rem] shadow-2xl shadow-emerald-900/5">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-black text-emerald-950 tracking-tighter uppercase mb-2">Нэвтрэх</h1>
         <p className="text-emerald-600 text-[10px] font-bold uppercase tracking-[0.2em]">Scholarship MN систем</p>
@@ -140,6 +141,7 @@ export default function LoginPage() {
           </p>
         </div>
       </form>
+    </div>
     </div>
   );
 }

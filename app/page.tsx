@@ -6,7 +6,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Globe, X, Bookmark, Info, BookOpen, MessageSquare, CalendarCheck } from "lucide-react";
-import SearchSection from "@/components/SearchSection"; 
+import SearchSection, { type SearchFeedback } from "@/components/SearchSection"; 
 import ScholarshipCard, { flagForCountry } from "@/components/scholarships/scholarshipCard";
 import { getScholarships } from "@/lib/actions/getScholarships";
 import { useAuth } from "@/context/AuthContext";
@@ -28,11 +28,11 @@ function uniqueCountriesFromScholarships(items: { country?: string }[]): string[
   return [...seen].sort((a, b) => a.localeCompare(b));
 }
 
-/** Олон улсыг нэгтгэж, Ирланд, Итали, Франц, Польш-ийг дээр нь үргэлж харуулна */
 function countryFilterListFromData(items: { country?: string }[]): string[] {
   const fromData = uniqueCountriesFromScholarships(items);
+  const featured = FEATURED_COUNTRIES.filter((c) => fromData.includes(c));
   const rest = fromData.filter((c) => !FEATURED_COUNTRIES.includes(c as (typeof FEATURED_COUNTRIES)[number]));
-  return [...FEATURED_COUNTRIES, ...rest];
+  return [...featured, ...rest];
 }
 
 type HomeCategoryFilter = "bachelor" | "master" | "doctor" | "partial" | "full";
@@ -61,16 +61,17 @@ function matchesHomeCategoryFilter(
 }
 
 const CATEGORY_FILTER_BUTTONS: { id: HomeCategoryFilter; label: string }[] = [
-  { id: "bachelor", label: "Bachelor" },
-  { id: "master", label: "Master" },
-  { id: "doctor", label: "Doctor" },
-  { id: "partial", label: "Partial" },
-  { id: "full", label: "Full" },
+  { id: "bachelor", label: "Бакалавр" },
+  { id: "master", label: "Магистр" },
+  { id: "doctor", label: "Доктор" },
+  { id: "partial", label: "Хэсэгчилсэн" },
+  { id: "full", label: "Бүрэн" },
 ];
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
   const [scholarships, setScholarships] = useState<any[]>([]);
+  const [allScholarships, setAllScholarships] = useState<any[]>([]);
   const [countryFilterOptions, setCountryFilterOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { savedItems, isSaved } = useAuth();
@@ -79,6 +80,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<HomeCategoryFilter | null>(null);
   /** Зөвхөн дуусах хугацаа нь ирээдүйд байгаа (эсвэл хугацаа бичигдээгүй) тэтгэлгүүд */
   const [openDeadlineOnly, setOpenDeadlineOnly] = useState(false);
+  const [searchFeedback, setSearchFeedback] = useState<SearchFeedback>({ kind: "idle" });
 
   // Анхны өгөгдлөө татах
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function Home() {
       try {
         const data = await getScholarships();
         setScholarships(data || []);
+        setAllScholarships(data || []);
         setCountryFilterOptions(countryFilterListFromData(data || []));
       } catch (error) {
         console.error("Fetch error:", error);
@@ -99,6 +102,8 @@ export default function Home() {
 
   // Слайдер солигдох хугацаа
   useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
     const timer = setInterval(() => setCurrent((prev) => (prev + 1) % HERO_SLIDES.length), 5000);
     return () => clearInterval(timer);
   }, []);
@@ -112,26 +117,18 @@ export default function Home() {
     return matchesSaved && matchesCountry && matchesCat && matchesDeadline;
   });
 
-  const clearFilters = async () => {
+  const clearFilters = () => {
     setSelectedCountry(null);
     setSelectedCategory(null);
     setOpenDeadlineOnly(false);
     setShowSavedOnly(false);
-    setLoading(true);
-    try {
-      const data = await getScholarships();
-      setScholarships(data || []);
-      setCountryFilterOptions(countryFilterListFromData(data || []));
-    } finally {
-      setLoading(false);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSearchFeedback({ kind: "idle" });
+    setScholarships(allScholarships);
   };
 
   return (
-    <main className="min-h-screen bg-[#f8faf8]">
-      {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden bg-emerald-950 pt-20">
+    <div className="min-h-screen bg-[#f8faf8]">
+      <section className="relative h-[60vh] min-h-[420px] flex items-center justify-center overflow-hidden bg-emerald-950">
         <AnimatePresence mode="wait">
           <motion.div 
             key={current} 
@@ -157,36 +154,50 @@ export default function Home() {
             <h1 className="text-4xl md:text-5xl font-serif italic mb-4">{HERO_SLIDES[current].title}</h1>
             <h2 className="text-3xl md:text-4xl font-sans font-black mb-8 text-emerald-400">{HERO_SLIDES[current].subtitle}</h2>
             
-            {/* Ухаалаг хайлтын хэсэг */}
             <div className="w-full min-w-0 max-w-3xl mx-auto">
               <SearchSection 
                 onSearchResults={(data) => setScholarships(data)} 
-                setLoadingState={(val) => setLoading(val)} 
+                setLoadingState={(val) => setLoading(val)}
+                onSearchFeedback={setSearchFeedback}
               />
+            </div>
+
+            <div className="flex justify-center gap-2 mt-8" role="tablist" aria-label="Нүүр слайд">
+              {HERO_SLIDES.map((slide, index) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  aria-label={`${index + 1}-р слайд`}
+                  aria-selected={current === index}
+                  onClick={() => setCurrent(index)}
+                  className={`h-2.5 rounded-full transition-all ${
+                    current === index ? "w-8 bg-emerald-400" : "w-2.5 bg-white/40 hover:bg-white/70"
+                  }`}
+                />
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
       <div className="container mx-auto px-6 py-16 flex flex-col lg:flex-row gap-10">
-        {/* Sidebar */}
         <aside className="w-full lg:w-1/4">
-          <div className="sticky top-32 space-y-8">
+          <div className="sticky top-24 space-y-8">
             <div className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm">
               <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <LayoutGrid size={14} /> Main Menu
+                <LayoutGrid size={14} /> Шүүлтүүр
               </p>
               <div className="space-y-1">
-                <Link
-                  href="/"
-                  scroll={false}
-                  onClick={() => void clearFilters()}
+                <button
+                  type="button"
+                  onClick={clearFilters}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${(!selectedCountry && !showSavedOnly && !selectedCategory && !openDeadlineOnly) ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
                 >
                   <Globe size={18} /> Бүх тэтгэлгүүд
-                </Link>
+                </button>
 
                 <button
+                  type="button"
                   onClick={() => { setShowSavedOnly(true); setSelectedCountry(null); }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${showSavedOnly ? 'bg-emerald-500 text-white shadow-lg' : 'text-emerald-900 hover:bg-emerald-50'}`}
                 >
@@ -198,21 +209,20 @@ export default function Home() {
                   </span>
                 </button>
 
-                <button onClick={() => window.location.href = '/courses'} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all">
+                <Link href="/courses" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all">
                    <BookOpen size={18} /> Сургалтууд
-                </button>
-                <button onClick={() => window.location.href = '/forum'} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all">
+                </Link>
+                <Link href="/forum" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all">
                    <MessageSquare size={18} /> Форум
-                </button>
-                <button onClick={() => window.location.href = '/about'} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all">
+                </Link>
+                <Link href="/about" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-emerald-900 hover:bg-emerald-50 transition-all">
                    <Info size={18} /> Бидний тухай
-                </button>
+                </Link>
               </div>
             </div>
 
-            {/* Countries */}
             <div className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm max-h-[500px] flex flex-col">
-              <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1">Popular Countries</p>
+              <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1">Улсууд</p>
               <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
                 {countryFilterOptions.length === 0 ? (
                   <p className="text-xs text-slate-400 px-2 py-2">Улсын жагсаалт ачааллаагүй байна.</p>
@@ -220,6 +230,7 @@ export default function Home() {
                   countryFilterOptions.map((name) => (
                     <button
                       key={name}
+                      type="button"
                       onClick={() => { setSelectedCountry(name); setShowSavedOnly(false); }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all group ${selectedCountry === name ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-emerald-900 hover:bg-emerald-50'}`}
                     >
@@ -246,7 +257,7 @@ export default function Home() {
                     ? `Шүүлтүүр: ${[
                         selectedCountry,
                         selectedCategory ? CATEGORY_FILTER_BUTTONS.find((b) => b.id === selectedCategory)?.label : null,
-                        openDeadlineOnly ? "Идэвхтэй (Active)" : null,
+                        openDeadlineOnly ? "Идэвхтэй" : null,
                       ].filter(Boolean).join(" · ")}`
                     : "Нийт"}
               </p>
@@ -262,7 +273,7 @@ export default function Home() {
                         : "Тэтгэлгүүд"}
               </h2>
             </div>
-            {(selectedCountry || showSavedOnly || selectedCategory || openDeadlineOnly) && (
+            {(selectedCountry || showSavedOnly || selectedCategory || openDeadlineOnly || searchFeedback.kind !== "idle") && (
               <button onClick={clearFilters} className="text-xs text-emerald-600 flex items-center gap-1 hover:underline font-bold uppercase tracking-tighter shrink-0">
                 <X size={14} /> Арилгах
               </button>
@@ -270,7 +281,7 @@ export default function Home() {
           </div>
 
           <div className="mb-10 flex flex-wrap gap-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-full mb-1">Category</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-full mb-1">Ангилал</span>
             {CATEGORY_FILTER_BUTTONS.map(({ id, label }) => (
               <button
                 key={id}
@@ -306,7 +317,7 @@ export default function Home() {
               }`}
             >
               <CalendarCheck size={14} />
-              <span>Идэвхтэй · Active</span>
+              <span>Идэвхтэй</span>
             </button>
           </div>
 
@@ -322,12 +333,18 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-20 bg-white border border-dashed border-emerald-200 rounded-3xl">
-              <p className="text-gray-500">Уучлаарай, тэтгэлэг олдсонгүй.</p>
+              <p className="text-gray-500">
+                {searchFeedback.kind === "empty"
+                  ? "Хайлтад тохирох тэтгэлэг олдсонгүй."
+                  : searchFeedback.kind === "error"
+                    ? "Хайлт амжилтгүй боллоо."
+                    : "Уучлаарай, тэтгэлэг олдсонгүй."}
+              </p>
               <Button variant="link" onClick={clearFilters} className="text-emerald-600 font-bold">БҮХ ТЭТГЭЛГИЙГ ХАРАХ</Button>
             </div>
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

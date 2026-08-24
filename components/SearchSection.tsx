@@ -1,7 +1,7 @@
-"use client"
-import { useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+"use client";
+import { useState } from "react";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 /** AI алдагдсан ч бичвэрээс TOPIK 1–6 олно */
 function parseTopikFromMessage(text: string): number | null {
@@ -26,27 +26,47 @@ function asNumber(v: unknown): number | null {
     return null;
 }
 
+export type SearchFeedback =
+    | { kind: "idle" }
+    | { kind: "ok"; count: number }
+    | { kind: "empty" }
+    | { kind: "error" }
+    | { kind: "unclear" };
+
 interface SearchSectionProps {
     onSearchResults: (data: any[]) => void;
     setLoadingState: (loading: boolean) => void;
+    onSearchFeedback?: (feedback: SearchFeedback) => void;
 }
 
-export default function SearchSection({ onSearchResults, setLoadingState }: SearchSectionProps) {
+export default function SearchSection({
+    onSearchResults,
+    setLoadingState,
+    onSearchFeedback,
+}: SearchSectionProps) {
     const [userInput, setUserInput] = useState("");
     const [isLocalLoading, setIsLocalLoading] = useState(false);
+    const [localFeedback, setLocalFeedback] = useState<SearchFeedback>({ kind: "idle" });
+
+    const emitFeedback = (feedback: SearchFeedback) => {
+        setLocalFeedback(feedback);
+        onSearchFeedback?.(feedback);
+    };
 
     const handleSmartSearch = async () => {
         if (!userInput.trim()) return;
-        
+
         setIsLocalLoading(true);
         setLoadingState(true);
-        
+        emitFeedback({ kind: "idle" });
+
         try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userInput })
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput }),
             });
+            if (!res.ok) throw new Error("search failed");
             const params = await res.json();
 
             const topikLevel = asNumber(params.topik) ?? parseTopikFromMessage(userInput);
@@ -68,91 +88,99 @@ export default function SearchSection({ onSearchResults, setLoadingState }: Sear
                 Boolean(params.degree) ||
                 Boolean(params.keyword);
 
-            if (hasAnyFilter) {
-                const scholarshipRef = collection(db, "scholarships");
-                let q = query(scholarshipRef);
-                
-                // 1. IELTS — тэтгэлгийн minIelts нь хэрэглэгчийн онооноос доош эсвэл тэнцүү
-                if (ielts != null) {
-                    q = query(q, where("minIelts", "<=", ielts));
-                }
-
-                // 2. GPA
-                if (gpa != null) {
-                    q = query(q, where("minGpa", "<=", gpa));
-                }
-                
-                // 3. Улсаар шүүх
-                if (params.country) {
-                    q = query(q, where("country", "==", params.country));
-                }
-
-                // 4. Боловсролын зэргээр шүүх (Bachelor, Master, PhD)
-                if (params.degree) {
-                    q = query(q, where("degree", "==", params.degree));
-                }
-
-                // 5. Түлхүүр үгээр шүүх
-                if (params.keyword) {
-                    q = query(q, where("category", "==", params.keyword));
-                }
-
-                // 6. TOPIK
-                if (topikLevel != null) {
-                    q = query(q, where("minTopik", "<=", topikLevel));
-                }
-
-                // 7. TestDaF / Герман
-                if (german != null) {
-                    q = query(q, where("minGerman", "<=", german));
-                }
-
-                // 8. HSK
-                if (hsk != null) {
-                    q = query(q, where("minHsk", "<=", hsk));
-                }
-
-                // 9. JLPT
-                if (jlpt != null) {
-                    q = query(q, where("minJlpt", "<=", jlpt));
-                }
-
-                const querySnapshot = await getDocs(q);
-                const data = querySnapshot.docs.map(doc => ({ 
-                    id: doc.id, 
-                    ...doc.data() 
-                }));
-                
-                onSearchResults(data);
-
-                if (data.length === 0) {
-                    console.log("Тохирох тэтгэлэг олдсонгүй.");
-                }
+            if (!hasAnyFilter) {
+                emitFeedback({ kind: "unclear" });
+                return;
             }
+
+            const scholarshipRef = collection(db, "scholarships");
+            let q = query(scholarshipRef);
+
+            if (ielts != null) {
+                q = query(q, where("minIelts", "<=", ielts));
+            }
+            if (gpa != null) {
+                q = query(q, where("minGpa", "<=", gpa));
+            }
+            if (params.country) {
+                q = query(q, where("country", "==", params.country));
+            }
+            if (params.degree) {
+                q = query(q, where("degree", "==", params.degree));
+            }
+            if (params.keyword) {
+                q = query(q, where("category", "==", params.keyword));
+            }
+            if (topikLevel != null) {
+                q = query(q, where("minTopik", "<=", topikLevel));
+            }
+            if (german != null) {
+                q = query(q, where("minGerman", "<=", german));
+            }
+            if (hsk != null) {
+                q = query(q, where("minHsk", "<=", hsk));
+            }
+            if (jlpt != null) {
+                q = query(q, where("minJlpt", "<=", jlpt));
+            }
+
+            const querySnapshot = await getDocs(q);
+            const data = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            onSearchResults(data);
+            emitFeedback(data.length === 0 ? { kind: "empty" } : { kind: "ok", count: data.length });
         } catch (error) {
             console.error("Search Error:", error);
+            emitFeedback({ kind: "error" });
         } finally {
             setIsLocalLoading(false);
             setLoadingState(false);
         }
     };
 
+    const feedbackText =
+        localFeedback.kind === "empty"
+            ? "Тохирох тэтгэлэг олдсонгүй. Шүүлтүүрээ өөрчилж үзнэ үү."
+            : localFeedback.kind === "error"
+              ? "Хайлт амжилтгүй боллоо. Дахин оролдоно уу."
+              : localFeedback.kind === "unclear"
+                ? "Улс, зэрэг, IELTS/GPA зэргийг тодорхой бичнэ үү."
+                : localFeedback.kind === "ok"
+                  ? `${localFeedback.count} тэтгэлэг олдлоо.`
+                  : null;
+
     return (
-        <div className="w-full min-w-0 max-w-3xl mx-auto flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-lg">
-            <input 
-                className="min-w-0 flex-1 bg-transparent border-none text-white placeholder:text-emerald-100/50 focus:outline-none px-2 py-2 sm:px-4"
-                placeholder="Жишээ нь: Би IELTS 6-тай Солонгос явах тэтгэлэг хайж байна..."
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSmartSearch()}
-            />
-            <button 
-                onClick={handleSmartSearch} 
-                disabled={isLocalLoading}
-                className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md px-3 py-2 sm:px-6 uppercase text-[10px] tracking-widest font-bold transition-all disabled:opacity-50"
-            >
-                {isLocalLoading ? "..." : "Хайх"}
-            </button>
+        <div className="w-full min-w-0 max-w-3xl mx-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-md border border-white/20 p-2 rounded-lg">
+                <input
+                    className="min-w-0 flex-1 bg-transparent border-none text-white placeholder:text-emerald-100/50 focus:outline-none px-2 py-2 sm:px-4"
+                    placeholder="Жишээ: IELTS 6.0, Солонгос, бакалавр..."
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSmartSearch()}
+                    aria-label="Тэтгэлэг хайх"
+                />
+                <button
+                    onClick={handleSmartSearch}
+                    disabled={isLocalLoading}
+                    className="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md px-3 py-2 sm:px-6 uppercase text-[10px] tracking-widest font-bold transition-all disabled:opacity-50"
+                >
+                    {isLocalLoading ? "Хайж байна..." : "Хайх"}
+                </button>
+            </div>
+            {feedbackText && (
+                <p
+                    className={`mt-3 text-sm font-medium ${
+                        localFeedback.kind === "ok" ? "text-emerald-200" : "text-amber-100"
+                    }`}
+                    role="status"
+                >
+                    {feedbackText}
+                </p>
+            )}
         </div>
     );
 }

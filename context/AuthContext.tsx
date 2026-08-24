@@ -31,21 +31,46 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   savedItems: any[];
+  checklistProgress: Record<string, number[]>;
   toggleSave: (item: any) => Promise<void>;
   isSaved: (id: string) => boolean;
-  // extraData-г сонголттой болгож өөрчлөв
-  register: (email: string, password: string, extraData?: { phone: string; age: string; birthDate: string }) => Promise<void>;
+  setChecklist: (
+    scholarshipId: string,
+    items: number[],
+    extra?: Record<string, unknown>
+  ) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    extraData?: { displayName?: string; phone?: string; age?: string; birthDate?: string }
+  ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
+}
+
+function sanitizeChecks(v: unknown): number[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((n): n is number => typeof n === "number" && Number.isInteger(n) && n >= 0);
+}
+
+function parseChecklistProgress(raw: unknown): Record<string, number[]> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, number[]> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    out[key] = sanitizeChecks(value);
+  }
+  return out;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null, 
   loading: true, 
   savedItems: [],
+  checklistProgress: {},
   toggleSave: async () => {}, 
   isSaved: () => false,
+  setChecklist: async () => {},
   register: async () => {}, 
   login: async () => {}, 
   logout: async () => {},
@@ -56,23 +81,62 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [savedItems, setSavedItems] = useState<any[]>([]);
+  const [checklistProgress, setChecklistProgress] = useState<Record<string, number[]>>({});
 
   const isSaved = (id: string) => savedItems.some(i => i.id === id);
 
   useEffect(() => {
     let unsubscribeUser: () => void;
+    let migratedGuest = false;
     
     const authUnsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
         unsubscribeUser = onSnapshot(doc(db, "users", u.uid), async (userDoc) => {
           if (userDoc.exists()) {
-            const savedIds = userDoc.data().savedScholarships || [];
+            const data = userDoc.data();
+            const progress = parseChecklistProgress(data.checklistProgress);
+            setChecklistProgress(progress);
+
+            if (!migratedGuest && typeof window !== "undefined") {
+              migratedGuest = true;
+              const payload: Record<string, number[]> = {};
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key?.startsWith("checklist:")) continue;
+                const suffix = key.includes(":") ? key.slice(key.lastIndexOf(":") + 1) : "";
+                if (suffix !== "guest" && suffix !== u.uid) continue;
+                const scholarshipId = key.slice("checklist:".length, -(suffix.length + 1));
+                if (!scholarshipId || progress[scholarshipId]?.length) continue;
+                try {
+                  const parsed = sanitizeChecks(JSON.parse(localStorage.getItem(key) || "[]"));
+                  if (parsed.length > 0) payload[scholarshipId] = parsed;
+                } catch {
+                  // ignore bad local data
+                }
+              }
+              const ids = Object.keys(payload);
+              if (ids.length > 0) {
+                const nested: Record<string, number[]> = {};
+                for (const sid of ids) nested[`checklistProgress.${sid}`] = payload[sid];
+                try {
+                  await updateDoc(doc(db, "users", u.uid), nested);
+                  ids.forEach((sid) => {
+                    localStorage.removeItem(`checklist:${sid}:guest`);
+                    localStorage.removeItem(`checklist:${sid}:${u.uid}`);
+                  });
+                } catch (err) {
+                  console.error("Checklist migrate error:", err);
+                }
+              }
+            }
+
+            const savedIds = data.savedScholarships || [];
             if (savedIds.length > 0) {
               try {
                 const sQuery = query(collection(db, "scholarships"), where(documentId(), "in", savedIds));
                 const sSnap = await getDocs(sQuery);
-                const sList = sSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const sList = sSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
                 setSavedItems(sList);
               } catch (err) {
                 console.error("Scholarships fetch error:", err);
@@ -83,7 +147,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         });
       } else {
+        migratedGuest = false;
+        if (unsubscribeUser) unsubscribeUser();
         setSavedItems([]);
+        setChecklistProgress({});
       }
       setLoading(false);
     });
@@ -94,10 +161,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const register = async (email: string, password: string, extraData?: { phone: string; age: string; birthDate: string }) => {
+  const register = async (
+    email: string,
+    password: string,
+    extraData?: { displayName?: string; phone?: string; age?: string; birthDate?: string }
+  ) => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const newUser = res.user;
-    const autoDisplayName = email.split('@')[0];
+    const autoDisplayName = extraData?.displayName?.trim() || email.split("@")[0];
 
     await updateProfile(newUser, { displayName: autoDisplayName });
 
@@ -112,6 +183,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       status: "not-started",
       profileCompleted: !!extraData, // Мэдээлэл ирсэн бол true, үгүй бол false
       savedScholarships: [],
+      checklistProgress: {},
       createdAt: serverTimestamp()
     });
 
@@ -127,7 +199,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const toggleSave = async (item: any) => {
-    if (!user) return alert("Нэвтэрсний дараа хадгалах боломжтой!");
+    if (!user) return;
     const userRef = doc(db, "users", user.uid);
     try {
       if (isSaved(item.id)) {
@@ -149,6 +221,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error) {
       console.error("Save error:", error);
+    }
+  };
+
+  const setChecklist = async (
+    scholarshipId: string,
+    items: number[],
+    extra?: Record<string, unknown>
+  ) => {
+    if (!user || !scholarshipId) return;
+    const clean = sanitizeChecks(items);
+    setChecklistProgress((prev) => ({ ...prev, [scholarshipId]: clean }));
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        [`checklistProgress.${scholarshipId}`]: clean,
+        ...(extra ?? {}),
+      });
+    } catch (error) {
+      console.error("Checklist save error:", error);
     }
   };
 
@@ -180,9 +270,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ 
-      user, loading, savedItems, toggleSave, isSaved, register, login, logout, deleteAccount 
+      user, loading, savedItems, checklistProgress, toggleSave, isSaved, setChecklist, register, login, logout, deleteAccount 
     }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

@@ -3,7 +3,8 @@
 import { db } from "@/lib/firebase";
 import { collection, addDoc, Timestamp, serverTimestamp } from "firebase/firestore";
 import { useState, useEffect } from "react"; // useEffect нэмэв
-import { Database, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Database } from "lucide-react";
+import AdminGuard from "@/components/admin/AdminGuard";
 
 const scholarshipsData = [
   {
@@ -292,13 +293,14 @@ export default function ImportPage() {
     if (!isMounted) return null; // Server-side prerender хийх үед хоосон буцаана
 
     return (
+        <AdminGuard>
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] text-white p-6">
             <div className="bg-[#1e293b] p-10 rounded-[2.5rem] shadow-2xl border border-white/5 w-full max-w-lg text-center relative overflow-hidden">
                 <div className="relative z-10">
                     <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
                         <Database className="text-emerald-400" size={40} />
                     </div>
-                    <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase">Data Seeder v2</h1>
+                    <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase">Өгөгдөл оруулах</h1>
                     <p className="text-slate-400 text-sm mb-10 font-medium">Firestore-руу {scholarshipsData.length} өгөгдөл хуулах</p>
 
                     <div className="space-y-4 mb-10 text-left">
@@ -318,5 +320,6 @@ export default function ImportPage() {
                 </div>
             </div>
         </div>
+        </AdminGuard>
     );
 }

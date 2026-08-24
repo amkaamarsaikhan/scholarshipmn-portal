@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { 
@@ -29,6 +30,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import AdminGuard from "@/components/admin/AdminGuard";
 import { 
   LayoutDashboard, User, CheckCircle, Clock, 
   GraduationCap, Sparkles, Building2, CheckCircle2, 
@@ -142,15 +144,18 @@ export default function AdminDashboard() {
   if (loading) return <div className="h-screen flex items-center justify-center font-black uppercase tracking-widest text-emerald-900 italic">Ачааллаж байна...</div>;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-20 px-6 md:px-12">
+    <AdminGuard>
+    <div className="min-h-screen bg-[#F8FAFC] py-12 px-6 md:px-12">
       <div className="max-w-7xl mx-auto space-y-24">
         
-        {/* --- HEADER --- */}
         <div className="flex flex-col items-center text-center space-y-4">
           <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-6 py-2 rounded-full font-black tracking-widest uppercase text-[10px] italic">
-            <ShieldCheck size={12} className="mr-2" /> System Administrator
+            <ShieldCheck size={12} className="mr-2" /> Системийн админ
           </Badge>
-          <h1 className="text-6xl font-black text-slate-900 tracking-tight italic uppercase">Control Panel</h1>
+          <h1 className="text-6xl font-black text-slate-900 tracking-tight italic uppercase">Хяналтын самбар</h1>
+          <Link href="/import" className="text-sm font-bold text-emerald-700 hover:underline">
+            Өгөгдөл оруулах
+          </Link>
         </div>
 
         {/* --- NEWSLETTER: footer-ийн «Мэдээлэл авах» бүртгүүлэгчдэд илгээх --- */}
@@ -287,9 +292,9 @@ export default function AdminDashboard() {
                       <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
                         <h3 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">{partner.name}</h3>
                         {partner.approved ? (
-                          <Badge className="bg-emerald-500 text-white border-none text-[9px] font-black italic">ACTIVE</Badge>
+                          <Badge className="bg-emerald-500 text-white border-none text-[9px] font-black italic">Идэвхтэй</Badge>
                         ) : (
-                          <Badge className="bg-amber-500 text-white border-none text-[9px] font-black italic animate-pulse">PENDING</Badge>
+                          <Badge className="bg-amber-500 text-white border-none text-[9px] font-black italic animate-pulse">Хүлээгдэж буй</Badge>
                         )}
                       </div>
                       <div className="flex flex-wrap gap-1 justify-center sm:justify-start">
@@ -356,7 +361,7 @@ export default function AdminDashboard() {
                             <AvatarFallback className="bg-emerald-100 text-emerald-700 font-black italic">{user.displayName?.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
-                            <span className="text-slate-900 font-black text-lg italic uppercase tracking-tighter">{user.displayName || "Unknown"}</span>
+                            <span className="text-slate-900 font-black text-lg italic uppercase tracking-tighter">{user.displayName || "Нэргүй"}</span>
                             <span className="text-slate-400 font-bold text-xs">{user.email}</span>
                           </div>
                         </div>
@@ -364,7 +369,7 @@ export default function AdminDashboard() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center"><GraduationCap size={16} className="text-emerald-600" /></div>
-                          <span className="text-base font-black text-slate-700 uppercase italic tracking-tighter">{user.lastUpdatedScholarship || "None"}</span>
+                          <span className="text-base font-black text-slate-700 uppercase italic tracking-tighter">{user.lastUpdatedScholarship || "Байхгүй"}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right px-12">
@@ -373,7 +378,7 @@ export default function AdminDashboard() {
                           user.status === "completed" ? "bg-emerald-500 text-white" : 
                           user.status === "in-progress" ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-400"
                         )}>
-                          {user.status === "completed" ? "Success" : user.status === "in-progress" ? "In Progress" : "No Action"}
+                          {user.status === "completed" ? "Амжилттай" : user.status === "in-progress" ? "Явж байна" : "Хийгээгүй"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -386,5 +391,6 @@ export default function AdminDashboard() {
 
       </div>
     </div>
+    </AdminGuard>
   );
 }

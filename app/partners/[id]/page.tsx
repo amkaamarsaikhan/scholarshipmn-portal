@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -13,9 +13,7 @@ import {
     ArrowLeft, 
     Loader2,
     ExternalLink,
-    MapPin
 } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 
 interface Partner {
@@ -33,8 +31,22 @@ interface Partner {
 
 export default function PartnerDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const [partner, setPartner] = useState<Partner | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const goBack = () => {
+        try {
+            const ref = document.referrer;
+            if (ref && new URL(ref).origin === window.location.origin) {
+                router.back();
+                return;
+            }
+        } catch {
+            // ignore invalid referrer
+        }
+        router.push("/courses");
+    };
 
     useEffect(() => {
         const fetchPartner = async () => {
@@ -67,7 +79,7 @@ export default function PartnerDetailPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
                 <h2 className="text-2xl font-black text-slate-900 uppercase italic">Партнер олдсонгүй</h2>
-                <Link href="/courses" className="mt-4 text-emerald-600 font-bold hover:underline">Буцах</Link>
+                <button type="button" onClick={goBack} className="mt-4 text-emerald-600 font-bold hover:underline">Буцах</button>
             </div>
         );
     }
@@ -77,7 +89,7 @@ export default function PartnerDetailPage() {
             {/* Header Banner */}
             <div className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
                 <Image
-                    src={partner.featuredImage}
+                    src={partner.featuredImage || "/hero1.png"}
                     alt={`${partner.name} байгууллагын нүүр зураг`}
                     fill
                     priority
@@ -88,13 +100,13 @@ export default function PartnerDetailPage() {
                 
                 <div className="absolute inset-0 flex items-end">
                     <div className="container mx-auto px-6 pb-12">
-                        <Link href="/courses" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6 font-bold text-sm transition-all">
+                        <button type="button" onClick={goBack} className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6 font-bold text-sm transition-all">
                             <ArrowLeft size={18} /> Буцах
-                        </Link>
+                        </button>
                         <div className="flex flex-col md:flex-row md:items-end gap-6">
                             <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2rem] p-1 shadow-2xl overflow-hidden border-4 border-white">
                                 <Image
-                                    src={partner.logo}
+                                    src={partner.logo || "/favicon.ico"}
                                     alt={`${partner.name} лого`}
                                     width={128}
                                     height={128}
