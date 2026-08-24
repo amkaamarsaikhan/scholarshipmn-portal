@@ -13,8 +13,8 @@ import { useAuth } from "@/context/AuthContext";
 import { isScholarshipDeadlineOpen } from "@/lib/scholarshipDeadline";
 
 const HERO_SLIDES = [
-  { id: 1, title: "Ирээдүйнхээ гүүрийг", subtitle: "ӨНӨӨДӨР БҮТЭЭ.", image: "/hero1.png" },
-  { id: 2, title: "Дэлхийн боловсролыг", subtitle: "ЭНДЭЭС ОЛ.", image: "/hero2.png" },
+  { id: 1, title: "Очиж сурахыг хүссэн улс,", subtitle: "өөрт тохирох тэтгэлгээ эндээс ол.", image: "/hero1.png" },
+  { id: 2, title: "Тухайн улсад тэтгэлэг авч суралцсан", subtitle: "менторуудаар материалаа хянуул.", image: "/hero2.png" },
 ];
 
 const FEATURED_COUNTRIES = ["Ireland", "Italy", "France", "Poland"] as const;
@@ -151,8 +151,8 @@ export default function Home() {
         
         <div className="container mx-auto px-6 text-center relative z-10 text-white w-full">
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8 }}>
-            <h1 className="text-4xl md:text-5xl font-serif italic mb-4">{HERO_SLIDES[current].title}</h1>
-            <h2 className="text-3xl md:text-4xl font-sans font-black mb-8 text-emerald-400">{HERO_SLIDES[current].subtitle}</h2>
+            <h1 className="text-3xl md:text-5xl font-serif italic mb-4 max-w-4xl mx-auto leading-snug">{HERO_SLIDES[current].title}</h1>
+            <h2 className="text-2xl md:text-4xl font-sans font-black mb-8 text-emerald-400 max-w-4xl mx-auto leading-snug">{HERO_SLIDES[current].subtitle}</h2>
             
             <div className="w-full min-w-0 max-w-3xl mx-auto">
               <SearchSection 
