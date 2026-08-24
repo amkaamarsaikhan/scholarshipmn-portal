@@ -1,7 +1,7 @@
 "use client";
 
 import { db } from "@/lib/firebase";
-import { collection, addDoc, Timestamp, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, updateDoc, getDocs, query, where, Timestamp, serverTimestamp } from "firebase/firestore";
 import { useState, useEffect } from "react"; // useEffect нэмэв
 import { Database } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
@@ -12,9 +12,9 @@ const scholarshipsData = [
     "country": "Italy",
     "organization": "Azienda DSU Toscana",
     "category": "Full",
-    "deadline": "2026-09-01",
+    "deadline": "2026-09-07",
     "link": "https://www.dsu.toscana.it/",
-    "description": "Сургалтын төлбөрөөс бүрэн чөлөөлөхөөс гадна үнэгүй байр, хоол болон жилд 6000+ еврогийн тэтгэмж олгоно. Гэр бүлийн орлого дээр суурилдаг.",
+    "description": "Сургалтын төлбөрөөс бүрэн чөлөөлөхөөс гадна үнэгүй байр, хоол болон жилд 6000+ еврогийн тэтгэмж олгоно. Гэр бүлийн орлого дээр суурилдаг. 2026/27: бакалавр/магистр 2026.09.07 хүртэл (PhD: 2026.11.16).",
     "minIelts": 6.0,
     "minGpa": 2.5,
     "minHsk": 0,
@@ -38,7 +38,7 @@ const scholarshipsData = [
     "country": "Italy",
     "organization": "Ministry of Foreign Affairs",
     "category": "Full",
-    "deadline": "2026-03-01",
+    "deadline": "2026-05-11",
     "link": "https://investyourtalentitaly.esteri.it/",
     "description": "Инженер, архитектур, дизайн, эдийн засгийн чиглэлээр суралцах оюутнуудад зориулсан засгийн газрын тэтгэлэг. Дадлага хийх боломжоор хангана.",
     "minIelts": 6.5,
@@ -64,7 +64,7 @@ const scholarshipsData = [
     "country": "Italy",
     "organization": "Ministry of Foreign Affairs and International Cooperation",
     "category": "Full",
-    "deadline": "2026-06-15",
+    "deadline": "2026-03-26",
     "link": "https://studyinitaly.esteri.it/",
     "description": "Италийн Засгийн газраас гадаадын оюутнуудад олгодог 9 сарын хугацаатай сургалтын төлбөр болон амьжиргааны тэтгэлэг.",
     "minIelts": 6.0,
@@ -90,7 +90,7 @@ const scholarshipsData = [
     "country": "France",
     "organization": "Embassy of France in Mongolia / Ministry of Education",
     "category": "Full",
-    "deadline": "2026-05-15",
+    "deadline": "2026-05-16",
     "link": "https://mn.ambafrance.org/",
     "description": "Монгол Улсын БШУЯ болон Францын Элчин сайдын яамны хамтарсан тэтгэлэг. Магистр, Докторын түвшинд суралцах оюутнуудын зардлыг бүрэн хариуцна.",
     "minIelts": 6.5,
@@ -116,7 +116,7 @@ const scholarshipsData = [
     "country": "France",
     "organization": "Campus France",
     "category": "Full",
-    "deadline": "2026-01-10",
+    "deadline": "2026-01-08",
     "link": "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence",
     "description": "Францын ГХЯ-наас олгодог хамгийн нэр хүндтэй тэтгэлэг. Сар бүрийн 1,181€ (Master) - 1,800€ (PhD) тэтгэмж, эрүүл мэндийн даатгал, ирэх очих нислэгийн зардлыг даана.",
     "minIelts": 7.0,
@@ -142,7 +142,7 @@ const scholarshipsData = [
     "country": "France",
     "organization": "Sciences Po University",
     "category": "Partial / Full",
-    "deadline": "2026-02-15",
+    "deadline": "2026-01-20",
     "link": "https://www.sciencespo.fr/students/en/fees-funding/financial-aid/emile-boutmy-scholarship/",
     "description": "Европын холбооны бус орнуудын шилдэг оюутнуудад зориулсан тэтгэлэг. Сургалтын төлбөрөөс 3,000€-оос 13,000€ хүртэлх хөнгөлөлт үзүүлнэ.",
     "minIelts": 7.0,
@@ -194,7 +194,7 @@ const scholarshipsData = [
     "country": "Poland",
     "organization": "Jagiellonian University in Krakow",
     "category": "Full",
-    "deadline": "2026-07-15",
+    "deadline": "2026-04-15",
     "link": "https://welcome.uj.edu.pl/en_GB/admission/scholarships",
     "description": "Польшийн хамгийн эртний, нэр хүндтэй сургуулиас олгодог тэтгэлэг. Сургалтын төлбөрөөс чөлөөлөхөөс гадна сар бүр 1,500 PLN тэтгэмж олгоно.",
     "minIelts": 6.5,
@@ -222,7 +222,7 @@ const scholarshipsData = [
     "category": "Full",
     "deadline": "2026-03-01",
     "link": "https://kirkland.edu.pl/en/",
-    "description": "2-аас доошгүй жил ажилласан туршлагатай залуу удирдагч, мэргэжилтнүүдэд зориулсан 2 семестрийн судалгааны тэтгэлэг.",
+    "description": "2-аас доошгүй жил ажилласан туршлагатай залуу удирдагч, мэргэжилтнүүдэд зориулсан 2 семестрийн судалгааны тэтгэлэг. Хугацаа жил бүрийн 3-р сарын 1. 2026–27 дуудлагын улсын жагсаалтад Монгол ороогүй байсан тул дараагийн ээлжийг kirkland.edu.pl дээр шалгана уу.",
     "minIelts": 6.0,
     "minGpa": 2.8,
     "minHsk": 0,
@@ -257,17 +257,21 @@ export default function ImportPage() {
     const startImport = async () => {
         if (isImporting) return;
         
-        const confirmAction = confirm(`Та ${scholarshipsData.length} тэтгэлэг оруулах уу?`);
+        const confirmAction = confirm(
+            `${scholarshipsData.length} тэтгэлэгийг нэрээр нь хайж шинэчлэх үү?\n\nБайгаа бичлэгийн ID хадгалагдана — хэрэглэгчийн хадгалсан жагсаалт устахгүй.`
+        );
         if (!confirmAction) return;
 
         setIsImporting(true);
-        setStatus("Импорт эхэллээ...");
-        let count = 0;
+        setStatus("Шинэчилж байна...");
+        let updated = 0;
+        let created = 0;
 
         try {
             const colRef = collection(db, "scholarships");
-            for (const item of scholarshipsData) {
-                await addDoc(colRef, {
+            for (let i = 0; i < scholarshipsData.length; i++) {
+                const item = scholarshipsData[i];
+                const payload = {
                     ...item,
                     minHsk: item.minHsk ?? 0,
                     minTopik: item.minTopik ?? 0,
@@ -275,13 +279,26 @@ export default function ImportPage() {
                     minGerman: item.minGerman ?? 0,
                     type: (item as { type?: string; category: string }).type ?? item.category ?? "Full Fund",
                     deadline: Timestamp.fromDate(new Date(item.deadline)),
-                    createdAt: serverTimestamp(),
-                    lastViewedAt: serverTimestamp()
-                });
-                count++;
-                setProgress(Math.round((count / scholarshipsData.length) * 100));
+                    updatedAt: serverTimestamp(),
+                };
+
+                const existing = await getDocs(query(colRef, where("title", "==", item.title)));
+                if (existing.empty) {
+                    await addDoc(colRef, {
+                        ...payload,
+                        createdAt: serverTimestamp(),
+                        lastViewedAt: serverTimestamp(),
+                    });
+                    created++;
+                } else {
+                    for (const docSnap of existing.docs) {
+                        await updateDoc(docSnap.ref, payload);
+                        updated++;
+                    }
+                }
+                setProgress(Math.round(((i + 1) / scholarshipsData.length) * 100));
             }
-            setStatus(`Амжилттай! ${count} тэтгэлэг баазад орлоо.`);
+            setStatus(`Дууслаа. Шинэчилсэн: ${updated}, шинээр нэмсэн: ${created}.`);
         } catch (err) {
             console.error(err);
             setStatus("Алдаа гарлаа.");
@@ -300,8 +317,10 @@ export default function ImportPage() {
                     <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
                         <Database className="text-emerald-400" size={40} />
                     </div>
-                    <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase">Өгөгдөл оруулах</h1>
-                    <p className="text-slate-400 text-sm mb-10 font-medium">Firestore-руу {scholarshipsData.length} өгөгдөл хуулах</p>
+                    <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase">Өгөгдөл шинэчлэх</h1>
+                    <p className="text-slate-400 text-sm mb-10 font-medium leading-relaxed">
+                        {scholarshipsData.length} тэтгэлэгийг нэрээр нь олж deadline-ийг шинэчилнэ. Document ID хэвээр үлдэх тул хадгалсан тэтгэлэг устахгүй.
+                    </p>
 
                     <div className="space-y-4 mb-10 text-left">
                         <div className="w-full bg-slate-800 rounded-full h-3">
@@ -314,7 +333,7 @@ export default function ImportPage() {
                         disabled={isImporting}
                         className="w-full h-16 rounded-2xl font-black bg-white text-black hover:bg-emerald-400 transition-all"
                     >
-                        {isImporting ? "Хуулж байна..." : "Өгөгдлийг хуулах"}
+                        {isImporting ? "Шинэчилж байна..." : "Deadline шинэчлэх"}
                     </button>
                     <div className="mt-8 text-xs font-bold text-slate-500">{status}</div>
                 </div>

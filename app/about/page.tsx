@@ -33,13 +33,30 @@ const AboutPage = () => {
                         Дэлхийн боловсролыг <br />
                         <span className="text-emerald-400">Монгол залууст</span>
                     </h1>
-                    <p className="text-emerald-100/70 text-lg max-w-2xl mx-auto mb-10">
-                        ScholarshipMN бол Монгол залуусын мэдлэг чадварыг дэлхийн хэмжээнд хүргэх гүүр юм.
-                        Бид Монгол залуусыг дэлхийн хэмжээний боловсролтой холбох эрхэм зорилгыг өвөртлөн,
-                        дэлхийн шилдэг сургуулиудад хүссэн мэргэжлээрээ суралцах үүд хаалгыг нээж, олон улсын тэтгэлэгт
-                        хөтөлбөрүүдэд амжилттай хамрагдахад нь бодит дэмжлэг, найдвартай хөтөч болж,
-                        тэдний өмнө хязгааргүй боломжуудыг бий болгохыг эрмэлзэж байна.
+                    <p className="text-emerald-100/70 text-lg max-w-2xl mx-auto mb-12">
+                        ScholarshipMN бол Монгол залуусын мэдлэг чадварыг дэлхийн хэмжээнд хүргэх гүүр.
                     </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto text-left">
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-4">
+                                <GraduationCap size={20} />
+                            </div>
+                            <p className="text-emerald-400 text-[11px] font-black uppercase tracking-widest mb-2">01</p>
+                            <h2 className="text-white font-bold text-lg leading-snug">
+                                Очиж сурахыг хүссэн улс, өөрт тохирох тэтгэлгээ эндээс ол
+                            </h2>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-4">
+                                <Users size={20} />
+                            </div>
+                            <p className="text-emerald-400 text-[11px] font-black uppercase tracking-widest mb-2">02</p>
+                            <h2 className="text-white font-bold text-lg leading-snug">
+                                Тухайн улсад тэтгэлэг авч суралцсан менторуудаар материалаа хянуул
+                            </h2>
+                        </div>
+                    </div>
                 </div>
             </section>
 
