@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, alreadySubscribed: true });
     }
 
-    await db.collection(NEWSLETTER_COLLECTION).add({
+    await db.collection(LEGACY_COLLECTION).add({
       email,
       subscribedAt: new Date(),
       status: "active",

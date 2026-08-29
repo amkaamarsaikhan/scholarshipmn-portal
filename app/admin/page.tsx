@@ -68,11 +68,33 @@ export default function AdminDashboard() {
     });
 
     const subQuery = query(collection(db, "subscribers"), where("status", "==", "active"));
+    const newsQuery = query(collection(db, "newsletter"), where("status", "==", "active"));
+    const mergeSubscriberCount = (a: Set<string>, b: Set<string>) => {
+      const all = new Set<string>();
+      for (const e of a) all.add(e);
+      for (const e of b) all.add(e);
+      setSubscriberCount(all.size);
+    };
+    let subEmails = new Set<string>();
+    let newsEmails = new Set<string>();
+    const emailsFromSnap = (snapshot: { docs: { data: () => Record<string, unknown> }[] }) => {
+      const set = new Set<string>();
+      for (const d of snapshot.docs) {
+        const email = d.data().email;
+        if (typeof email === "string" && email.trim()) set.add(email.trim().toLowerCase());
+      }
+      return set;
+    };
     const unsubSubs = onSnapshot(subQuery, (snapshot) => {
-      setSubscriberCount(snapshot.size);
+      subEmails = emailsFromSnap(snapshot);
+      mergeSubscriberCount(subEmails, newsEmails);
+    });
+    const unsubNews = onSnapshot(newsQuery, (snapshot) => {
+      newsEmails = emailsFromSnap(snapshot);
+      mergeSubscriberCount(subEmails, newsEmails);
     });
 
-    return () => { unsubUsers(); unsubPartners(); unsubSubs(); };
+    return () => { unsubUsers(); unsubPartners(); unsubSubs(); unsubNews(); };
   }, []);
 
   // Партнер баталгаажуулах функц
@@ -179,7 +201,10 @@ export default function AdminDashboard() {
                 </CardTitle>
                 <CardDescription className="font-bold text-slate-500">
                   Footer-оос &quot;Мэдээлэл авах&quot;-аар бүртгүүлсэн идэвхтэй имэйлүүд руу (Firebase{" "}
-                  <code className="text-xs bg-slate-100 px-1 rounded">subscribers</code>) Zoho-оор мэдэгдэл явуулна.
+                  <code className="text-xs bg-slate-100 px-1 rounded">subscribers</code>
+                  {", "}
+                  <code className="text-xs bg-slate-100 px-1 rounded">newsletter</code>
+                  ) Zoho-оор мэдэгдэл явуулна.
                 </CardDescription>
               </div>
             </div>

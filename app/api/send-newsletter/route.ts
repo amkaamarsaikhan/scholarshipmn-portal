@@ -30,12 +30,15 @@ export async function POST(req: Request) {
 
         const { title, description, link, country } = await req.json();
 
-        let snapshot = await db.collection(NEWSLETTER_COLLECTION).where("status", "==", "active").get();
-        if (snapshot.empty) {
-            // Backward compatibility: existing records might still be in old collection.
-            snapshot = await db.collection(LEGACY_COLLECTION).where("status", "==", "active").get();
+        const emailSet = new Set<string>();
+        for (const col of [LEGACY_COLLECTION, NEWSLETTER_COLLECTION]) {
+            const snap = await db.collection(col).where("status", "==", "active").get();
+            for (const docSnap of snap.docs) {
+                const email = typeof docSnap.data().email === "string" ? docSnap.data().email.trim().toLowerCase() : "";
+                if (email) emailSet.add(email);
+            }
         }
-        const recipientEmails = snapshot.docs.map(doc => doc.data().email).filter(Boolean);
+        const recipientEmails = [...emailSet];
 
         if (recipientEmails.length === 0) {
             return NextResponse.json({ success: true, message: "No subscribers found" });
