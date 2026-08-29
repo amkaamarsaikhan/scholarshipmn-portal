@@ -153,9 +153,17 @@ export default function AdminDashboard() {
             <ShieldCheck size={12} className="mr-2" /> Системийн админ
           </Badge>
           <h1 className="text-6xl font-black text-slate-900 tracking-tight italic uppercase">Хяналтын самбар</h1>
-          <Link href="/import" className="text-sm font-bold text-emerald-700 hover:underline">
-            Өгөгдөл оруулах
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link href="/admin/scholarships" className="text-sm font-bold text-emerald-700 hover:underline">
+              Тэтгэлгийн огноо (Batch update)
+            </Link>
+            <Link href="/admin/add" className="text-sm font-bold text-emerald-700 hover:underline">
+              Тэтгэлэг нэмэх
+            </Link>
+            <Link href="/import" className="text-sm font-bold text-slate-400 hover:underline">
+              Seed импорт
+            </Link>
+          </div>
         </div>
 
         {/* --- NEWSLETTER: footer-ийн «Мэдээлэл авах» бүртгүүлэгчдэд илгээх --- */}

@@ -11,6 +11,7 @@ import {
   PlusCircle,
   Home,
   LayoutDashboard,
+  CalendarClock,
   UserCircle,
   LogOut,
   Bookmark,
@@ -89,7 +90,7 @@ const Navbar = () => {
   };
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+    href === "/" || href === "/admin" ? pathname === href : pathname.startsWith(href);
 
   const linkClass = (href: string) =>
     `transition-colors ${
@@ -125,6 +126,9 @@ const Navbar = () => {
             )}
             {isAdmin && (
               <>
+                <Link href="/admin/scholarships" className={`flex items-center gap-1.5 ${linkClass("/admin/scholarships")}`}>
+                  <CalendarClock size={14} /> Огноо засах
+                </Link>
                 <Link href="/admin/add" className={`flex items-center gap-1.5 ${linkClass("/admin/add")}`}>
                   <PlusCircle size={14} /> Тэтгэлэг нэмэх
                 </Link>
@@ -319,6 +323,16 @@ const Navbar = () => {
                   </Link>
                   {isAdmin && (
                     <>
+                      <Link
+                        href="/admin/scholarships"
+                        onClick={closeMenu}
+                        className="flex items-center justify-between p-4 rounded-2xl hover:bg-emerald-50 transition-colors"
+                      >
+                        <span className="text-sm font-black text-slate-700 uppercase tracking-widest">
+                          Огноо засах
+                        </span>
+                        <CalendarClock size={18} className="text-emerald-500" />
+                      </Link>
                       <Link
                         href="/admin/add"
                         onClick={closeMenu}
