@@ -8,12 +8,15 @@ import {
   signInWithEmailAndPassword, 
   signOut,
   deleteUser,
-  updateProfile
+  updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { 
   doc, 
   setDoc, 
+  getDoc,
   serverTimestamp, 
   updateDoc, 
   deleteDoc, 
@@ -45,6 +48,7 @@ interface AuthContextType {
     extraData?: { displayName?: string; phone?: string; age?: string; birthDate?: string }
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
 }
@@ -72,7 +76,8 @@ const AuthContext = createContext<AuthContextType>({
   isSaved: () => false,
   setChecklist: async () => {},
   register: async () => {}, 
-  login: async () => {}, 
+  login: async () => {},
+  loginWithGoogle: async () => {},
   logout: async () => {},
   deleteAccount: async () => {},
 });
@@ -243,6 +248,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const login = (e: string, p: string) => signInWithEmailAndPassword(auth, e, p).then(() => {});
+
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    const res = await signInWithPopup(auth, provider);
+    const googleUser = res.user;
+    const userRef = doc(db, "users", googleUser.uid);
+    const existing = await getDoc(userRef);
+    if (existing.exists()) return;
+
+    const displayName = googleUser.displayName?.trim() || googleUser.email?.split("@")[0] || "Хэрэглэгч";
+    await setDoc(userRef, {
+      uid: googleUser.uid,
+      email: googleUser.email || "",
+      displayName,
+      phone: "",
+      age: 0,
+      birthDate: "",
+      status: "not-started",
+      profileCompleted: false,
+      savedScholarships: [],
+      checklistProgress: {},
+      provider: "google",
+      createdAt: serverTimestamp(),
+    });
+
+    await fetch("/api/admin-notification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subject: "Шинэ хэрэглэгч (Google)",
+        email: googleUser.email,
+        phone: "Google бүртгэл",
+      }),
+    });
+  };
+
   const logout = () => signOut(auth);
 
   const deleteAccount = async () => {
@@ -270,7 +312,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ 
-      user, loading, savedItems, checklistProgress, toggleSave, isSaved, setChecklist, register, login, logout, deleteAccount 
+      user, loading, savedItems, checklistProgress, toggleSave, isSaved, setChecklist, register, login, loginWithGoogle, logout, deleteAccount 
     }}>
       {children}
     </AuthContext.Provider>

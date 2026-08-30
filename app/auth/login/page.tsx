@@ -10,6 +10,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -134,6 +135,8 @@ export default function LoginPage() {
         >
           {isSubmitting ? "Түр хүлээнэ үү..." : "Нэвтрэх"}
         </Button>
+
+        <GoogleSignInButton />
 
         <div className="pt-4 border-t border-slate-50 text-center">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">

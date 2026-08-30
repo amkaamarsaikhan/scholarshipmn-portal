@@ -10,6 +10,7 @@ import * as z from "zod";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import {
   Form,
   FormControl,
@@ -155,6 +156,10 @@ export default function RegisterPage() {
               </Button>
             </form>
           </Form>
+
+          <div className="mt-6">
+            <GoogleSignInButton />
+          </div>
 
           <div className="mt-6 pt-4 border-t border-slate-50 text-center">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
